@@ -1,7 +1,7 @@
 import { Face } from './face';
 import { Mesh } from './mesh';
 import { TexCoord } from './tex-coord';
-import { Vector } from './vector';
+import { Vector } from './Vector';
 
 export function convertToMeshArray(data: string): Array<Mesh> {
     const json: Array<Mesh> = new Array<Mesh>();
