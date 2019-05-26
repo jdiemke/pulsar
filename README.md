@@ -1,8 +1,14 @@
-# pulsar
+# Pulsar
 A WebGL 2.0 Playground
 
-# References
+## References
 - https://thebookofshaders.com/
 
-# TODO
-[ ] - Add TravisCI
+## Open Topics
+- [ ] Add TravisCI
+- [ ] Add camera
+- [ ] Add illumination models
+- [ ] Add particle system
+- [ ] Add DOF
+- [ ] Add gamepad support
+
