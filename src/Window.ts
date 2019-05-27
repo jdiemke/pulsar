@@ -1,15 +1,17 @@
 import { AbstractScene } from './AbstractScene';
-import { logger, Logger } from './core/Logger';
+import { FullscreenUtils } from './core/fullscreen/FullscreenUtils';
+import { Logger } from './core/Logger';
 import * as RenderingContext from './core/RenderingContext';
 import { context as gl } from './core/RenderingContext';
-import { FullscreenUtils } from './fullscreen/FullscreenUtils';
 
 export class Window {
 
     private logger: Logger = new Logger(Window.name);
     private scene: AbstractScene;
 
-    public constructor(private elementId: string, private width: number, private height: number) {
+    public constructor(elementId: string, private width: number, private height: number,
+                       scene?: AbstractScene) {
+        this.scene = scene;
         const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById(elementId);
         canvas.width = width;
         canvas.height = height;

@@ -24,7 +24,7 @@ module.exports = {
                 use: 'html-loader'
             },
             {
-                test: /\.(vs|fs|obj|jpg)$/,
+                test: /\.(vs|fs|obj|jpg|frag|vert)$/,
                 use: [{
                     loader: 'file-loader',
                     options: {

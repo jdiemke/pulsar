@@ -1,7 +1,7 @@
-import { Logger } from '../core/Logger';
-import { FragmentShader } from './FragmentShader';
-import { ShaderProgram } from './ShaderProgram';
-import { VertexShader } from './VertexShader';
+import { Logger } from '../Logger';
+import { FragmentShader } from '../shader/FragmentShader';
+import { ShaderProgram } from '../shader/ShaderProgram';
+import { VertexShader } from '../shader/VertexShader';
 
 export class ShaderUtils {
 

@@ -3,6 +3,7 @@ import { context as gl } from './core/RenderingContext';
 export class VertexBufferObject {
 
     private vbo: WebGLBuffer;
+    private length: number;
 
     constructor(bufferData: Array<number>) {
         this.vbo = gl.createBuffer();
@@ -14,6 +15,10 @@ export class VertexBufferObject {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
         gl.vertexAttribPointer(loc, size, gl.FLOAT, false, stride * Float32Array.BYTES_PER_ELEMENT, offset);
         gl.enableVertexAttribArray(loc);
+    }
+
+    public draw(length: number): void {
+        gl.drawArrays(gl.TRIANGLES, 0, length);
     }
 
 }

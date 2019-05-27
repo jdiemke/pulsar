@@ -1,4 +1,4 @@
-import { context as gl } from '../core/RenderingContext';
+import { context as gl } from '../RenderingContext';
 import { AbstractShader } from './AbstractShader';
 
 export class FragmentShader extends AbstractShader {

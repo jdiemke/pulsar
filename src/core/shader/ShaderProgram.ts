@@ -1,5 +1,5 @@
-import { logger } from '../core/Logger';
-import { context as gl } from './../core/RenderingContext';
+import { logger } from '../Logger';
+import { context as gl } from '../RenderingContext';
 import { FragmentShader } from './FragmentShader';
 import { VertexShader } from './VertexShader';
 
