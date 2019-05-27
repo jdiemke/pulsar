@@ -32,6 +32,8 @@ export class Window {
             event.preventDefault();
             FullscreenUtils.toggleFullscreen(canvas);
         });
+
+        this.draw = this.draw.bind(this);
     }
 
     public addScene(scene: AbstractScene): void {
@@ -58,7 +60,7 @@ export class Window {
 
     private draw(): void {
         this.scene.draw();
-        requestAnimationFrame(() => this.draw());
+        requestAnimationFrame(this.draw);
     }
 
 }

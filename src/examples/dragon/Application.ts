@@ -1,5 +1,5 @@
+import * as PULSAR from '../../Window';
 import { Scene } from './Scene';
-import * as PULSAR from './Window';
 
 class Application {
 

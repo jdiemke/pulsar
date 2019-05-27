@@ -10,11 +10,16 @@ A WebGL 2.0 Playground
 
 ## Demos
 
-- [Dragon](https://jdiemke.github.io/pulsar/index.html)
+- [Dragon](https://jdiemke.github.io/pulsar/dragon.html)
+- [Reflection](https://jdiemke.github.io/pulsar/reflection.html)
 
 ## References
 
+- https://webgl2fundamentals.org/
+- https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API
 - https://thebookofshaders.com/
+- http://twgljs.org/
+- https://www.khronos.org/webgl/wiki/HandlingContextLost
 
 ## Open Topics
 
@@ -24,3 +29,4 @@ A WebGL 2.0 Playground
 - [ ] Add particle system
 - [ ] Add DOF
 - [ ] Add gamepad support
+- [ ] Handle lost context in WebGL

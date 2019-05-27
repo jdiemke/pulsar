@@ -1,11 +1,11 @@
 import { mat4 } from 'gl-matrix';
-import { AbstractScene } from './AbstractScene';
-import { context as gl } from './core/RenderingContext';
+import { AbstractScene } from '../../AbstractScene';
+import { context as gl } from '../../core/RenderingContext';
+import { Face } from '../../model/face';
+import { Mesh } from '../../model/mesh';
+import { WavefrontLoader } from '../../model/WavefrontLoader';
+import { VertexBufferObject } from '../../VertexBufferObject';
 import { GreenShaderProgram } from './GreenShaderProgram';
-import { Face } from './model/face';
-import { Mesh } from './model/mesh';
-import { WavefrontLoader } from './model/WavefrontLoader';
-import { VertexBufferObject } from './VertexBufferObject';
 
 export class Scene extends AbstractScene {
 
@@ -14,15 +14,21 @@ export class Scene extends AbstractScene {
 
     private colorShaderProgram: GreenShaderProgram;
     private meshes: Array<Mesh>;
+    private img: HTMLImageElement;
 
     public preload(): Promise<any> {
-        return Promise.all([GreenShaderProgram.create().then(
-            (shaderProgram: GreenShaderProgram) => {
+        return Promise.all([
+            GreenShaderProgram.create().then((shaderProgram: GreenShaderProgram) => {
                 this.colorShaderProgram = shaderProgram;
             }),
-        WavefrontLoader.load(require('./dragon.obj')).then((mesh: Array<Mesh>) => {
-            this.meshes = mesh;
-        })
+            WavefrontLoader.load(require('./assets/dragon.obj')).then((mesh: Array<Mesh>) => {
+                this.meshes = mesh;
+            }),
+            new Promise<HTMLImageElement>((resolve) => {
+                const image: HTMLImageElement = new Image();
+                image.src = require('./assets/env.jpg');
+                image.addEventListener('load', (ev: Event) => resolve(image));
+            }).then((img: HTMLImageElement) => this.img = img)
         ]);
     }
 
@@ -62,21 +68,26 @@ export class Scene extends AbstractScene {
         const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
         const color: number = this.colorShaderProgram.getAttributeLocation('vcolor');
 
-        const floatsPerVertex: number = 3;
         this.colorShaderProgram.use();
 
         vbo.vertexAttributePointer(vertex, 3, 6, 0);
         vbo.vertexAttributePointer(color, 3, 6, 3 * 4);
 
-
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+
+        const tex: WebGLTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.img);
+        gl.generateMipmap(gl.TEXTURE_2D);
+
+        gl.clearColor(0.2, 0.2, 0.25, 1.0);
     }
 
     public draw(): void {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
         this.colorShaderProgram.setProjectionMatrix(this.computeModelViewMatrix());
-
         gl.drawArrays(gl.TRIANGLES, 0, this.meshes[0].faces.length * 3);
     }
 

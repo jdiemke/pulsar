@@ -3,7 +3,8 @@ var path = require('path');
 
 module.exports = {
     entry: {
-        application: './src/Application.ts'
+        'dragon': './src/examples/dragon/Application.ts',
+        'reflection': './src/examples/reflection-dragon/Application.ts'
     },
     output: {
         filename: '[name].bundle.js',
@@ -23,7 +24,7 @@ module.exports = {
                 use: 'html-loader'
             },
             {
-                test: /\.(vs|fs|obj)$/,
+                test: /\.(vs|fs|obj|jpg)$/,
                 use: [{
                     loader: 'file-loader',
                     options: {
@@ -37,7 +38,14 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './src/index.html'
+            template: './src/index.html',
+            chunks: ['dragon'],
+            filename: 'dragon.html'
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['reflection'],
+            filename: 'reflection.html'
         }),
     ]
 }
