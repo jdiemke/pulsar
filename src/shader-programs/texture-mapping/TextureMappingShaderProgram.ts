@@ -23,7 +23,7 @@ export class TextureMappingShaderProgram extends ShaderProgram {
         });
     }
 
-    private static logger: Logger = new Logger(TextureMappingShaderProgram.name);
+    private static logger: Logger = new Logger('TextureMappingShaderProgram');
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;

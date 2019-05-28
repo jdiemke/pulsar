@@ -37,6 +37,6 @@ export class ShaderUtils {
         });
     }
 
-    private static logger: Logger = new Logger(ShaderUtils.name);
+    private static logger: Logger = new Logger('ShaderUtils');
 
 }

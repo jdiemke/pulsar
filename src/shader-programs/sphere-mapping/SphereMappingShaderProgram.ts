@@ -23,7 +23,7 @@ export class SphereMappingShaderProgram extends ShaderProgram {
         });
     }
 
-    private static logger: Logger = new Logger(SphereMappingShaderProgram.name);
+    private static logger: Logger = new Logger('SphereMappingShaderProgram');
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;

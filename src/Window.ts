@@ -6,7 +6,7 @@ import { context as gl } from './core/RenderingContext';
 
 export class Window {
 
-    private logger: Logger = new Logger(Window.name);
+    private logger: Logger = new Logger('Window');
     private scene: AbstractScene;
 
     public constructor(elementId: string, private width: number, private height: number,
