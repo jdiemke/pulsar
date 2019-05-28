@@ -34,6 +34,7 @@ export class WavefrontLoader {
                     array.push(mesh.normals[face.normals[0]].y);
                     array.push(mesh.normals[face.normals[0]].z);
 
+
                     array.push(mesh.vertices[face.vertices[1]].x);
                     array.push(mesh.vertices[face.vertices[1]].y);
                     array.push(mesh.vertices[face.vertices[1]].z);
@@ -42,6 +43,8 @@ export class WavefrontLoader {
                     array.push(mesh.normals[face.normals[1]].y);
                     array.push(mesh.normals[face.normals[1]].z);
 
+
+
                     array.push(mesh.vertices[face.vertices[2]].x);
                     array.push(mesh.vertices[face.vertices[2]].y);
                     array.push(mesh.vertices[face.vertices[2]].z);
@@ -49,6 +52,47 @@ export class WavefrontLoader {
                     array.push(mesh.normals[face.normals[2]].x);
                     array.push(mesh.normals[face.normals[2]].y);
                     array.push(mesh.normals[face.normals[2]].z);
+
+
+
+                    length += 3;
+                });
+            });
+
+            return { vbo: new VertexBufferObject(array), length };
+        });
+    }
+
+    public static loadIntoVboTex(filename: string): Promise<{ vbo: VertexBufferObject, length: number }> {
+        return WavefrontLoader.load(filename).then((value) => {
+            const array: Array<number> = new Array<number>();
+            let length: number = 0;
+
+            value.forEach((mesh: Mesh) => {
+                mesh.faces.forEach((face: Face) => {
+                    array.push(mesh.vertices[face.vertices[0]].x);
+                    array.push(mesh.vertices[face.vertices[0]].y);
+                    array.push(mesh.vertices[face.vertices[0]].z);
+
+                    array.push(mesh.uv[face.uv[0]].u);
+                    array.push(1 - mesh.uv[face.uv[0]].v);
+
+                    array.push(mesh.vertices[face.vertices[1]].x);
+                    array.push(mesh.vertices[face.vertices[1]].y);
+                    array.push(mesh.vertices[face.vertices[1]].z);
+
+
+                    array.push(mesh.uv[face.uv[1]].u);
+                    array.push(1 - mesh.uv[face.uv[1]].v);
+
+                    array.push(mesh.vertices[face.vertices[2]].x);
+                    array.push(mesh.vertices[face.vertices[2]].y);
+                    array.push(mesh.vertices[face.vertices[2]].z);
+
+
+                    array.push(mesh.uv[face.uv[2]].u);
+                    array.push(1 - mesh.uv[face.uv[2]].v);
+
                     length += 3;
                 });
             });

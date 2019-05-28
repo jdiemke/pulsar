@@ -12,6 +12,7 @@ A WebGL 2.0 Playground
 
 - [Dragon](https://jdiemke.github.io/pulsar/dragon.html)
 - [Reflection](https://jdiemke.github.io/pulsar/reflection.html)
+- [Baked Lighting & Shadows](https://jdiemke.github.io/pulsar/textured-wavefront.html)
 
 ## References
 
@@ -24,6 +25,7 @@ A WebGL 2.0 Playground
 ## Open Topics
 
 - [x] Add TravisCI
+- [ ] Add glTF (https://github.com/KhronosGroup/glTF)
 - [ ] Add camera
 - [ ] Add illumination models
 - [ ] Add particle system

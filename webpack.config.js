@@ -4,7 +4,8 @@ var path = require('path');
 module.exports = {
     entry: {
         'dragon': './src/examples/dragon/Application.ts',
-        'reflection': './src/examples/reflection-dragon/Application.ts'
+        'reflection': './src/examples/reflection-dragon/Application.ts',
+        'textured-wavefront': './src/examples/textured-wavefront/Application.ts'
     },
     output: {
         filename: '[name].bundle.js',
@@ -24,7 +25,7 @@ module.exports = {
                 use: 'html-loader'
             },
             {
-                test: /\.(vs|fs|obj|jpg|frag|vert)$/,
+                test: /\.(vs|fs|obj|jpg|frag|vert|png)$/,
                 use: [{
                     loader: 'file-loader',
                     options: {
@@ -46,6 +47,11 @@ module.exports = {
             template: './src/index.html',
             chunks: ['reflection'],
             filename: 'reflection.html'
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['textured-wavefront'],
+            filename: 'textured-wavefront.html'
         }),
     ]
 }

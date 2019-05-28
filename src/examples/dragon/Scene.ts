@@ -68,6 +68,8 @@ export class Scene extends AbstractScene {
         vbo.vertexAttributePointer(color, 3, 6, 3 * 4);
 
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+        gl.cullFace(gl.BACK);
+        gl.enable(gl.CULL_FACE);
     }
 
     public draw(): void {

@@ -6,25 +6,24 @@ import { ShaderProgram } from '../../core/shader/ShaderProgram';
 import { VertexShader } from '../../core/shader/VertexShader';
 import { ShaderUtils } from '../../core/utils/ShaderUtils';
 
+export class TextureMappingShaderProgram extends ShaderProgram {
 
-export class GreenShaderProgram extends ShaderProgram {
-
-    public static create(): Promise<GreenShaderProgram> {
+    public static create(): Promise<TextureMappingShaderProgram> {
         const startTime: number = Date.now();
 
         return Promise.all([
-            ShaderUtils.loadShader(require('./assets/VertexShader.vs')),
-            ShaderUtils.loadShader(require('./assets/FragmentShader.fs')),
+            ShaderUtils.loadShader(require('./shaders/SphereMapping.vert')),
+            ShaderUtils.loadShader(require('./shaders/SphereMapping.frag')),
         ]).then((value: [string, string]) => {
-            return new GreenShaderProgram(value[0], value[1]);
+            return new TextureMappingShaderProgram(value[0], value[1]);
         }).finally(() => {
-            GreenShaderProgram.logger.measure((Date.now() - startTime),
+            TextureMappingShaderProgram.logger.measure((Date.now() - startTime),
                 'Finished creating shader program.'
             );
         });
     }
 
-    private static logger: Logger = new Logger(GreenShaderProgram.name);
+    private static logger: Logger = new Logger(TextureMappingShaderProgram.name);
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;
