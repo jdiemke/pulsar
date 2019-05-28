@@ -1,15 +1,12 @@
 #version 300 es
 
-precision highp float;
-
-in vec2 tex;
+precision mediump float;
 
 uniform sampler2D utexture;
-
-out vec4 frag;
+in vec2 tex;
+out vec4 outColor;
 
 void main() {
-    vec3 color = texture(utexture,tex).xyz;
-    frag = vec4(color,  1.0);
+    outColor = texture(utexture, tex);
 }
 

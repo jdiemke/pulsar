@@ -9,6 +9,7 @@ import { WavefrontLoader } from '../../model/WavefrontLoader';
 import { SphereMappingShaderProgram } from '../../shader-programs/sphere-mapping/SphereMappingShaderProgram';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { TextureMappingShaderProgram } from '../../shader-programs/texture-mapping/TextureMappingShaderProgram';
+import { VertexArrayObject } from '../../VertextArrayObject';
 
 export class ReflectionMappingScene extends AbstractScene {
 
@@ -29,28 +30,26 @@ export class ReflectionMappingScene extends AbstractScene {
                 this.vbo = vbo.vbo;
                 this.length = vbo.length;
             }),
-            TextureUtils.load(require('./../../assets/models/baked_susanna.png')).then((texture: Texture) =>  {
+            TextureUtils.load(require('./../../assets/models/baked_susanna.png')).then((texture: Texture) => {
                 this.texture = texture;
             })
         ]);
     }
 
     public init(): void {
-        const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
-        const texcoord: number = this.colorShaderProgram.getAttributeLocation('texcoord');
-
-        this.colorShaderProgram.use();
-
-        this.vbo.vertexAttributePointer(vertex, 3, 5, 0);
-        this.vbo.vertexAttributePointer(texcoord, 2, 5, 3 * 4);
-
-        this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
-
-        this.texture.bind();
+        const vao: VertexArrayObject = new VertexArrayObject();
+        vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('vertex'), 3, 5, 0);
+        vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('texcoord'), 2, 5, 3);
 
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
+
+        this.colorShaderProgram.use();
+        this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+
+        this.texture.bind();
+        vao.bind();
     }
 
     public draw(): void {
@@ -68,7 +67,7 @@ export class ReflectionMappingScene extends AbstractScene {
         mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [0, -0.9, -4]);
         //mat4.rotateX(this.modelViewMatrix, this.modelViewMatrix, Date.now() * 0.0008);
         return mat4.rotateY(this.modelViewMatrix, this.modelViewMatrix, Date.now() * 0.0008);
-        
+
     }
 
 }

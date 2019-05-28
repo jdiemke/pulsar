@@ -6,6 +6,7 @@ import { Face } from '../../model/face';
 import { Mesh } from '../../model/mesh';
 import { WavefrontLoader } from '../../model/WavefrontLoader';
 import { VertexBufferObject } from '../../VertexBufferObject';
+import { VertexArrayObject } from '../../VertextArrayObject';
 
 export class Scene extends AbstractScene {
 
@@ -58,14 +59,20 @@ export class Scene extends AbstractScene {
         });
 
         const vbo: VertexBufferObject = new VertexBufferObject(array);
+        const vba: VertexArrayObject = new VertexArrayObject();
+        vba.bind();
 
         const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
         const color: number = this.colorShaderProgram.getAttributeLocation('vcolor');
 
+        vba.bindVertexBufferToAttribute(vbo, vertex, 3, 6, 0);
+        vba.bindVertexBufferToAttribute(vbo, color, 3, 6, 3 * 4);
+
+
+
         this.colorShaderProgram.use();
 
-        vbo.vertexAttributePointer(vertex, 3, 6, 0);
-        vbo.vertexAttributePointer(color, 3, 6, 3 * 4);
+
 
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
         gl.cullFace(gl.BACK);

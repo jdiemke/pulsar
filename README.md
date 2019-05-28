@@ -32,3 +32,21 @@ A WebGL 2.0 Playground
 - [ ] Add DOF
 - [ ] Add gamepad support
 - [ ] Handle lost context in WebGL
+
+## References
+
+- https://learnopengl.com/
+- http://www.opengl-tutorial.org/
+- http://fabiensanglard.net/shadowmapping/
+- https://www.opengl.org/sdk/docs/tutorials/TyphoonLabs/Chapter_4.pdf
+- http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/
+- https://www.babylonjs-playground.com/
+- https://www.khronos.org/opengl/wiki/Keyframe_Animation
+- http://www.ozone3d.net/tutorials/glsl_fog/
+- http://www.ozone3d.net/tutorials/glsl_texturing.php
+- http://www.ozone3d.net/tutorials/glsl_lighting_phong.php
+- http://www.ozone3d.net/tutorials/bump_mapping.php
+- http://www.ozone3d.net/tutorials/glsl_intro.php
+- https://www.youtube.com/user/ThinMatrix/
+- https://catlikecoding.com/unity/tutorials/rendering/part-20/
+- https://casual-effects.com/research/McGuire2005Parallax/index.html

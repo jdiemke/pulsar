@@ -8,6 +8,7 @@ import { Mesh } from '../../model/mesh';
 import { WavefrontLoader } from '../../model/WavefrontLoader';
 import { SphereMappingShaderProgram } from '../../shader-programs/sphere-mapping/SphereMappingShaderProgram';
 import { VertexBufferObject } from '../../VertexBufferObject';
+import { VertexArrayObject } from '../../VertextArrayObject';
 
 export class ReflectionMappingScene extends AbstractScene {
 
@@ -40,8 +41,9 @@ export class ReflectionMappingScene extends AbstractScene {
 
         this.colorShaderProgram.use();
 
-        this.vbo.vertexAttributePointer(vertex, 3, 6, 0);
-        this.vbo.vertexAttributePointer(color, 3, 6, 3 * 4);
+        const vao: VertexArrayObject = new VertexArrayObject();
+        vao.bindVertexBufferToAttribute(this.vbo, vertex, 3, 6, 0);
+        vao.bindVertexBufferToAttribute(this.vbo, color, 3, 6, 3);
 
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
 
