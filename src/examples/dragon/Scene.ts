@@ -67,12 +67,8 @@ export class Scene extends AbstractScene {
 
         vba.bindVertexBufferToAttribute(vbo, vertex, 3, 6, 0);
         vba.bindVertexBufferToAttribute(vbo, color, 3, 6, 3 * 4);
-
-
-
+        
         this.colorShaderProgram.use();
-
-
 
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
         gl.cullFace(gl.BACK);

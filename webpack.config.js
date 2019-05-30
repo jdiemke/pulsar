@@ -5,7 +5,8 @@ module.exports = {
     entry: {
         'dragon': './src/examples/dragon/Application.ts',
         'reflection': './src/examples/reflection-dragon/Application.ts',
-        'textured-wavefront': './src/examples/textured-wavefront/Application.ts'
+        'textured-wavefront': './src/examples/textured-wavefront/Application.ts',
+        'image': './src/examples/image/Application.ts'
     },
     output: {
         filename: '[name].bundle.js',
@@ -52,6 +53,11 @@ module.exports = {
             template: './src/index.html',
             chunks: ['textured-wavefront'],
             filename: 'textured-wavefront.html'
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['image'],
+            filename: 'image.html'
         }),
     ]
 }
