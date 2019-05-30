@@ -66,8 +66,8 @@ export class Scene extends AbstractScene {
         const color: number = this.colorShaderProgram.getAttributeLocation('vcolor');
 
         vba.bindVertexBufferToAttribute(vbo, vertex, 3, 6, 0);
-        vba.bindVertexBufferToAttribute(vbo, color, 3, 6, 3 * 4);
-        
+        vba.bindVertexBufferToAttribute(vbo, color, 3, 6, 3);
+
         this.colorShaderProgram.use();
 
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
