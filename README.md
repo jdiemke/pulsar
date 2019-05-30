@@ -15,6 +15,7 @@ A WebGL 2.0 Playground
 - [Reflection](https://jdiemke.github.io/pulsar/reflection.html)
 - [Baked Lighting & Shadows](https://jdiemke.github.io/pulsar/textured-wavefront.html)
 - [Background Image](https://jdiemke.github.io/pulsar/image.html)
+- [Torus Knot](https://jdiemke.github.io/torus-knot/image.html)
 
 ## References
 

@@ -3,7 +3,6 @@ import { context as gl } from './core/RenderingContext';
 export class VertexBufferObject {
 
     private vbo: WebGLBuffer;
-    private length: number;
 
     constructor(bufferData: Array<number>) {
         this.vbo = gl.createBuffer();

@@ -6,7 +6,8 @@ module.exports = {
         'dragon': './src/examples/dragon/Application.ts',
         'reflection': './src/examples/reflection-dragon/Application.ts',
         'textured-wavefront': './src/examples/textured-wavefront/Application.ts',
-        'image': './src/examples/image/Application.ts'
+        'image': './src/examples/image/Application.ts',
+        'torus-knot': './src/examples/torus-knot/Application.ts'
     },
     output: {
         filename: '[name].bundle.js',
@@ -58,6 +59,11 @@ module.exports = {
             template: './src/index.html',
             chunks: ['image'],
             filename: 'image.html'
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['torus-knot'],
+            filename: 'torus-knot.html'
         }),
     ]
 }
