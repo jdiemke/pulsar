@@ -1,5 +1,5 @@
 import { mat4 } from 'gl-matrix';
-import { Texture } from '../../core/texture/Texture';
+import { Texture, TextureUnit } from '../../core/texture/Texture';
 import { TextureUtils } from '../../core/utils/TextureUtils';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
@@ -20,10 +20,9 @@ export class BackgroundImage {
         gl.disable(gl.CULL_FACE);
         gl.depthMask(false);
 
-        this.texture.bind();
+        this.texture.bind(TextureUnit.UNIT_0);
         this.vertexArrayObject.bind();
         this.shader.use();
-
         gl.drawArrays(gl.TRIANGLES, 0, 6);
 
         gl.depthMask(true);
@@ -72,6 +71,7 @@ export class BackgroundImage {
 
         this.shader.setModelViewMatrix(this.computeProjectionMatrix());
         this.shader.setProjectionMatrix(this.computeModelViewMatrix(0, 0, 640, 360));
+        this.shader.setTextureUnit(0);
     }
 
     private init(): Promise<BackgroundImage> {

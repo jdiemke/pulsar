@@ -60,7 +60,6 @@ export class Scene extends AbstractScene {
 
         const vbo: VertexBufferObject = new VertexBufferObject(array);
         const vba: VertexArrayObject = new VertexArrayObject();
-        vba.bind();
 
         const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
         const color: number = this.colorShaderProgram.getAttributeLocation('vcolor');
@@ -69,8 +68,9 @@ export class Scene extends AbstractScene {
         vba.bindVertexBufferToAttribute(vbo, color, 3, 6, 3);
 
         this.colorShaderProgram.use();
-
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+
+        vba.bind();
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
     }

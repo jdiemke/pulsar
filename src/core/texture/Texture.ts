@@ -13,8 +13,13 @@ export class Texture {
         gl.generateMipmap(gl.TEXTURE_2D);
     }
 
-    public bind(): void {
+    public bind(textureUnit: TextureUnit = TextureUnit.UNIT_0): void {
+        gl.activeTexture(textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
     }
 
+}
+
+export enum TextureUnit {
+    UNIT_0 = WebGL2RenderingContext.TEXTURE0
 }

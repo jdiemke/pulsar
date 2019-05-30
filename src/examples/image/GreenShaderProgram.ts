@@ -28,6 +28,7 @@ export class GreenShaderProgram extends ShaderProgram {
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;
+    private textureUnit: WebGLUniformLocation;
 
     constructor(vertexShaderSource: string, fragmentShaderSource: string) {
         super(new VertexShader(vertexShaderSource), new FragmentShader(fragmentShaderSource));
@@ -42,9 +43,14 @@ export class GreenShaderProgram extends ShaderProgram {
         gl.uniformMatrix4fv(this.modelViewMatrixLocation, false, projectionMatrix);
     }
 
+    public setTextureUnit(tex: number): void {
+        gl.uniform1i(this.textureUnit, tex);
+    }
+
     private setupUniforms(): void {
         this.modelViewMatrixLocation = gl.getUniformLocation(this.program, 'modelViewMatrix');
         this.projectionMatrixLocation = gl.getUniformLocation(this.program, 'projectionMatrix');
+        this.textureUnit = gl.getUniformLocation(this.program, 'utexture');
     }
 
 }

@@ -47,7 +47,6 @@ export class Scene extends AbstractScene {
 
         const vbo: VertexBufferObject = new VertexBufferObject(array);
         const vba: VertexArrayObject = new VertexArrayObject();
-        vba.bind();
 
         const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
         const tex: number = this.colorShaderProgram.getAttributeLocation('texcoord');
@@ -56,8 +55,8 @@ export class Scene extends AbstractScene {
         vba.bindVertexBufferToAttribute(vbo, tex, 2, 4, 2);
 
         this.colorShaderProgram.use();
-
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+        vba.bind();
         this.texture.bind();
     }
 
