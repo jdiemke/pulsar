@@ -1,5 +1,6 @@
 import { context as gl } from './core/RenderingContext';
 import { VertexBufferObject } from './VertexBufferObject';
+import { ElementBufferObject } from './ElementBufferObject';
 
 export class VertexArrayObject {
 
@@ -33,6 +34,13 @@ export class VertexArrayObject {
                 offset * Float32Array.BYTES_PER_ELEMENT
             );
         });
+    }
+
+    public bindElementBuffer(ebo: ElementBufferObject): void {
+        this.bindAndExecute(() => {
+            ebo.bind();
+        });
+        ebo.unbind();
     }
 
     private bindAndExecute(fun: () => void): void {

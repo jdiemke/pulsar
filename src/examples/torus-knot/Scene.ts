@@ -11,6 +11,7 @@ import { Vector4f } from './Vector4f';
 import { Texture, TextureUnit } from '../../core/texture/Texture';
 import { TextureUtils } from '../../core/utils/TextureUtils';
 import { BackgroundImage } from '../image/Effect';
+import { ElementBufferObject } from '../../ElementBufferObject';
 
 export class Scene extends AbstractScene {
 
@@ -19,10 +20,12 @@ export class Scene extends AbstractScene {
 
     private colorShaderProgram: GreenShaderProgram;
     private array: Array<number> = new Array<number>();
+    private array2: Array<number> = new Array<number>();
     private texture: Texture;
     private texture2: Texture;
     private background: BackgroundImage;
     private vba: VertexArrayObject;
+    private ibo: ElementBufferObject;
 
     public preload(): Promise<any> {
         return Promise.all([GreenShaderProgram.create().then(
@@ -52,7 +55,7 @@ export class Scene extends AbstractScene {
         array.push(tex[index].y);
     }
 
-    public init(): void {
+    public init2(): void {
         const array: Array<number> = this.array;
 
         const points: Array<Vector4f> = [];
@@ -77,6 +80,7 @@ export class Scene extends AbstractScene {
                 tex.push(new Vector4f(r / STEPS2 * 2, i / STEPS * 8, 0, 0));
             }
         }
+        console.log('points', points.length);
 
         STEPS++;
         STEPS2++;
@@ -100,7 +104,10 @@ export class Scene extends AbstractScene {
             }
         }
 
+        console.log('vertices', array.length / 8);
+
         const vbo: VertexBufferObject = new VertexBufferObject(array);
+
         const vba: VertexArrayObject = new VertexArrayObject();
         this.vba = vba;
 
@@ -124,19 +131,109 @@ export class Scene extends AbstractScene {
         gl.enable(gl.CULL_FACE);
     }
 
+    public init(): void {
+        const array: Array<number> = this.array;
+
+        const points: Array<Vector4f> = [];
+        const normals: Array<Vector4f> = [];
+        const tex: Array<Vector4f> = [];
+
+        let STEPS = 160;
+        let STEPS2 = 16;
+
+        const array2 = this.array2;
+        for (let i = 0; i < STEPS + 1; i++) {
+            let frame = this.torusFunction3(i * 2 * Math.PI / STEPS);
+            let frame2 = this.torusFunction3(i * 2 * Math.PI / STEPS + 0.1);
+
+            let tangent = frame2.sub(frame);
+            let up = frame.add(frame2).normalize();
+            let right = tangent.cross(up).normalize().mul(20.0);
+            up = right.cross(tangent).normalize().mul(20.0);
+
+            for (let r = 0; r < STEPS2 + 1; r++) {
+                let pos = up.mul(Math.sin(r * 2 * Math.PI / STEPS2)).add(right.mul(Math.cos(r * 2 * Math.PI / STEPS2))).add(frame);
+                const p = pos;
+                const n = pos.sub(frame).normalize()
+                const t = new Vector4f(r / STEPS2 * 2, i / STEPS * 8, 0, 0);
+
+                array.push(p.x);
+                array.push(p.y);
+                array.push(p.z);
+                array.push(n.x);
+                array.push(n.y);
+                array.push(n.z);
+                array.push(t.x);
+                array.push(t.y);
+                points.push(p);
+            }
+        }
+        console.log('points', points.length);
+
+        STEPS++;
+        STEPS2++;
+
+        for (let j = 0; j < STEPS; j++) {
+            for (let i = 0; i < STEPS2; i++) {
+                const idx1 = ((STEPS2 * j) + (1 + i) % STEPS2) % points.length;
+                const idx2 = ((STEPS2 * j) + (0 + i) % STEPS2) % points.length;
+                const idx3 = ((STEPS2 * j) + STEPS2 + (1 + i) % STEPS2) % points.length;
+
+                const idx4 = ((STEPS2 * j) + STEPS2 + (0 + i) % STEPS2) % points.length; //4
+                const idx5 = ((STEPS2 * j) + STEPS2 + (1 + i) % STEPS2) % points.length; //3
+                const idx6 = ((STEPS2 * j) + (0 + i) % STEPS2) % points.length; // 5
+
+                array2.push(idx1, idx2, idx3, idx4, idx5, idx6);
+            }
+        }
+
+        console.log('vertices', array.length / 8);
+        console.log('vertices', array2.length);
+
+        const vbo: VertexBufferObject = new VertexBufferObject(array);
+
+        const vba: VertexArrayObject = new VertexArrayObject();
+        this.vba = vba;
+        const ibo: ElementBufferObject = new ElementBufferObject(array2);
+        this.ibo = ibo;
+
+        const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
+        const color: number = this.colorShaderProgram.getAttributeLocation('vcolor');
+        const texture: number = this.colorShaderProgram.getAttributeLocation('texcoord');
+
+        vba.bindVertexBufferToAttribute(vbo, vertex, 3, 8, 0);
+        vba.bindVertexBufferToAttribute(vbo, color, 3, 8, 3);
+        vba.bindVertexBufferToAttribute(vbo, texture, 2, 8, 6);
+        vba.bindElementBuffer(ibo);
+
+        this.colorShaderProgram.use();
+        this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+        this.colorShaderProgram.setTextureUnit(0);
+        this.colorShaderProgram.setTextureUni2t(1);
+
+        vba.bind();
+        this.texture.bind(TextureUnit.UNIT_0);
+        this.texture2.bind(TextureUnit.UNIT_1);
+        gl.cullFace(gl.BACK);
+        gl.enable(gl.CULL_FACE);
+    }
+
     public draw(): void {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        // Draw Logo
         this.background.draw();
 
+        // Draw Torus
         this.vba.bind();
+
         this.colorShaderProgram.use();
+        this.colorShaderProgram.setProjectionMatrix(this.computeModelViewMatrix());
 
         this.texture.bind(TextureUnit.UNIT_0);
         this.texture2.bind(TextureUnit.UNIT_1);
-        this.colorShaderProgram.setProjectionMatrix(this.computeModelViewMatrix());
 
-        gl.drawArrays(gl.TRIANGLES, 0, this.array.length / 8);
+        gl.drawElements(gl.TRIANGLES, this.array2.length, gl.UNSIGNED_INT, 0);
     }
 
     private computeProjectionMatrix(): mat4 {
