@@ -15,8 +15,10 @@ export class Window {
         const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById(elementId);
         canvas.width = width;
         canvas.height = height;
+        
         const contextAttributes: WebGLContextAttributes = {
-            antialias: true
+            antialias: true,
+            premultipliedAlpha: false
         };
 
         const renderingContext: WebGL2RenderingContext = canvas.getContext('webgl2', contextAttributes);
