@@ -12,6 +12,7 @@ export class Scene extends AbstractScene {
 
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
+    private normal: mat4 = mat4.create();
 
     private colorShaderProgram: GreenShaderProgram;
     private meshes: Array<Mesh>;
@@ -78,7 +79,10 @@ export class Scene extends AbstractScene {
     public draw(): void {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        this.colorShaderProgram.setProjectionMatrix(this.computeModelViewMatrix());
+        const mv: mat4 = this.computeModelViewMatrix();
+        // mat4.invert(this.normal, mv);
+        // mat4.transpose(this.normal, this.normal);
+        this.colorShaderProgram.setProjectionMatrix(mv);
 
         gl.drawArrays(gl.TRIANGLES, 0, this.meshes[0].faces.length * 3);
     }

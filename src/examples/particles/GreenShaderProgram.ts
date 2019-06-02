@@ -5,6 +5,7 @@ import { FragmentShader } from '../../core/shader/FragmentShader';
 import { ShaderProgram } from '../../core/shader/ShaderProgram';
 import { VertexShader } from '../../core/shader/VertexShader';
 import { ShaderUtils } from '../../core/utils/ShaderUtils';
+import { Vector4f } from './Vector4f';
 
 
 export class GreenShaderProgram extends ShaderProgram {
@@ -30,6 +31,7 @@ export class GreenShaderProgram extends ShaderProgram {
     private projectionMatrixLocation: WebGLUniformLocation;
     private textureUnit: WebGLUniformLocation;
     private textureUnit2: WebGLUniformLocation;
+    private pos: WebGLUniformLocation;
 
     constructor(vertexShaderSource: string, fragmentShaderSource: string) {
         super(new VertexShader(vertexShaderSource), new FragmentShader(fragmentShaderSource));
@@ -50,11 +52,17 @@ export class GreenShaderProgram extends ShaderProgram {
         gl.uniform1i(this.textureUnit2, tex);
     }
 
+    public setPos(pos: Vector4f): void {
+        gl.uniform3f(this.pos,pos.x, pos.y, pos.z);
+    }
+
     private setupUniforms(): void {
         this.modelViewMatrixLocation = gl.getUniformLocation(this.program, 'modelViewMatrix');
         this.projectionMatrixLocation = gl.getUniformLocation(this.program, 'projectionMatrix');
         this.textureUnit = gl.getUniformLocation(this.program, 'utexture');
         this.textureUnit2 = gl.getUniformLocation(this.program, 'utexture2');
+
+        this.pos = gl.getUniformLocation(this.program, 'position');
     }
 
 

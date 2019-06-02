@@ -20,7 +20,7 @@ export class VertexArrayObject {
 
     public bindVertexBufferToAttribute(
         vbo: VertexBufferObject,
-        loc: number, size: GLint, stride: GLsizei, offset: GLintptr): void {
+        loc: number, size: GLint, stride: GLsizei, offset: GLintptr, divisor: number = 0): void {
 
         this.bindAndExecute(() => {
             vbo.bind();
@@ -33,6 +33,7 @@ export class VertexArrayObject {
                 stride * Float32Array.BYTES_PER_ELEMENT,
                 offset * Float32Array.BYTES_PER_ELEMENT
             );
+            gl.vertexAttribDivisor(loc, divisor);
         });
     }
 
