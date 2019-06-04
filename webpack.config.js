@@ -1,5 +1,6 @@
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var path = require('path');
+var webpack = require('webpack');
 
 module.exports = {
     entry: {
@@ -41,6 +42,9 @@ module.exports = {
         ]
     },
     plugins: [
+        new webpack.DefinePlugin({
+            BUILD_TIME: JSON.stringify(new Date().toISOString())
+        }),
         new HtmlWebpackPlugin({
             template: './src/index.html',
             chunks: ['dragon'],

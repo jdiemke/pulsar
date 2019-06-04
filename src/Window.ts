@@ -11,6 +11,7 @@ export class Window {
 
     public constructor(elementId: string, private width: number, private height: number,
                        scene?: AbstractScene) {
+
         this.scene = scene;
         const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById(elementId);
         canvas.width = width;
@@ -38,6 +39,7 @@ export class Window {
         });
 
         this.draw = this.draw.bind(this);
+        this.logger.info('BUILD DATE:', BUILD_TIME);
     }
 
     public addScene(scene: AbstractScene): void {

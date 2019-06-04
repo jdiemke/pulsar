@@ -64,3 +64,5 @@ A WebGL 2.0 Playground
 - http://ogldev.atspace.co.uk/
 - http://www.mbsoftworks.sk/tutorials/opengl3/23-particle-system/
 - https://www.bfilipek.com/2014/05/flexible-particle-system-emitter-and.html
+- https://threejsfundamentals.org/
+- https://github.com/phoboslab/TwoPointFive

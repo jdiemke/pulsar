@@ -13,3 +13,5 @@ interface Document {
     mozCancelFullScreen?(): void;
     webkitExitFullscreen?(): void;
 }
+
+declare const BUILD_TIME: string;
