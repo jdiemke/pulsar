@@ -17,6 +17,7 @@ A WebGL 2.0 Playground
 - [Background Image](https://jdiemke.github.io/pulsar/image.html)
 - [Torus Knot](https://jdiemke.github.io/pulsar/torus-knot.html)
 - [Particles](https://jdiemke.github.io/pulsar/particles.html)
+- [Game](https://jdiemke.github.io/pulsar/game.html)
 
 ## References
 

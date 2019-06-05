@@ -13,6 +13,12 @@ export class Texture {
         gl.generateMipmap(gl.TEXTURE_2D);
     }
 
+    public blocky(): void {
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    }
+
     public bind(textureUnit: TextureUnit = TextureUnit.UNIT_0): void {
         gl.activeTexture(textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, this.texture);

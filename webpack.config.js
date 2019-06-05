@@ -9,7 +9,8 @@ module.exports = {
         'textured-wavefront': './src/examples/textured-wavefront/Application.ts',
         'image': './src/examples/image/Application.ts',
         'torus-knot': './src/examples/torus-knot/Application.ts',
-        'particles': './src/examples/particles/Application.ts'
+        'particles': './src/examples/particles/Application.ts',
+        'game': './src/examples/game/Application.ts'
     },
     output: {
         filename: '[name].bundle.js',
@@ -74,6 +75,11 @@ module.exports = {
             template: './src/index.html',
             chunks: ['particles'],
             filename: 'particles.html'
+        }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['game'],
+            filename: 'game.html'
         }),
     ]
 }
