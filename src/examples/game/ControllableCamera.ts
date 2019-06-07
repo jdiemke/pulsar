@@ -3,8 +3,8 @@ import { Vector4f } from "../torus-knot/Vector4f";
 
 export class ControllableCamera {
 
-    private position: Vector4f;
-    private yaw: number = 0.0;
+    public position: Vector4f;
+    public yaw: number = 0.0;
     private mat: mat4 = mat4.create();
 
     constructor(pos: Vector4f,yaw: number) {
@@ -14,7 +14,7 @@ export class ControllableCamera {
 
     public getMatrix(): mat4 {
         mat4.identity(this.mat);
-        mat4.scale(this.mat, this.mat,[3,3,3]);
+        mat4.scale(this.mat, this.mat,[4,4,4]);
         mat4.rotateY(this.mat, this.mat, -this.yaw);
         
         return mat4.translate(this.mat, this.mat, [-this.position.x, 0, -this.position.z]);
