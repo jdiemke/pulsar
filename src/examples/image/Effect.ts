@@ -5,16 +5,18 @@ import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
 import { context as gl } from './../../core/RenderingContext';
 import { GreenShaderProgram } from './GreenShaderProgram';
+import { Vector4f } from '../torus-knot/Vector4f';
 
 export class BackgroundImage {
 
-    public static create(): Promise<BackgroundImage> {
-        return new BackgroundImage().init();
+    public static create(file: string = require('./../../assets/textures/genesis.png')): Promise<BackgroundImage> {
+        return new BackgroundImage().init(file);
     }
 
     public shader: GreenShaderProgram;
     public texture: Texture;
     public vertexArrayObject: VertexArrayObject;
+    public position: Vector4f;
 
     public draw(): void {
         gl.disable(gl.CULL_FACE);
@@ -23,10 +25,20 @@ export class BackgroundImage {
         this.texture.bind(TextureUnit.UNIT_0);
         this.vertexArrayObject.bind();
         this.shader.use();
+        this.shader.setProjectionMatrix(this.computeModelViewMatrix(this.position.x, this.position.y, this.position.z, this.position.w));
+        gl.enable(gl.BLEND);
+        gl.enable(gl.BLEND);
+        
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.disable(gl.BLEND);
 
         gl.depthMask(true);
         gl.enable(gl.CULL_FACE);
+    }
+
+    public setPosition(x: number, y: number, width: number, height: number): void {
+        this.position = new Vector4f(x, y, width, height);
     }
 
     private computeModelViewMatrix(x: number, y: number, width: number, height: number): mat4 {
@@ -34,15 +46,17 @@ export class BackgroundImage {
         mat4.identity(modelViewMatrix);
         mat4.translate(modelViewMatrix, modelViewMatrix,
             [-1 + 2 / 640 * x, 1 - 2 / 360 * y, 0]);
+        //return mat4.scale(modelViewMatrix, modelViewMatrix, [2 / 640 * width, -2 / 360 * height, 1]);
         return mat4.scale(modelViewMatrix, modelViewMatrix, [2 / 640 * width, -2 / 360 * height, 1]);
     }
 
-    private preloadResources(): Promise<any> {
+    private preloadResources(file: string): Promise<any> {
         return Promise.all([
             GreenShaderProgram.create().then((shaderProgram: GreenShaderProgram) => {
                 this.shader = shaderProgram;
             }),
-            TextureUtils.load(require('./../../assets/textures/genesis.png')).then((texture: Texture) => {
+            TextureUtils.load(file).then((texture: Texture) => {
+                texture.blocky();
                 this.texture = texture;
             })
         ]);
@@ -70,12 +84,13 @@ export class BackgroundImage {
         this.shader.use();
 
         this.shader.setModelViewMatrix(this.computeProjectionMatrix());
-        this.shader.setProjectionMatrix(this.computeModelViewMatrix(0, 0, 640, 360));
+        // tslint:disable-next-line: max-line-length
         this.shader.setTextureUnit(0);
     }
 
-    private init(): Promise<BackgroundImage> {
-        return this.preloadResources().then(() => {
+    private init(file: string): Promise<BackgroundImage> {
+        this.setPosition(0, 0, 640, 360);
+        return this.preloadResources(file).then(() => {
             this.setupEffect();
             return this;
         });

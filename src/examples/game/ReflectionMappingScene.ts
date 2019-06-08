@@ -9,6 +9,7 @@ import { VertexArrayObject } from '../../VertextArrayObject';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
 import { Keyboard } from './Keyboard';
+import { BackgroundImage } from '../image/Effect';
 
 export class ReflectionMappingScene extends AbstractScene {
 
@@ -19,6 +20,7 @@ export class ReflectionMappingScene extends AbstractScene {
     private vbo: VertexBufferObject;
     private texture: Texture;
     private length: number;
+    private vao: VertexArrayObject;
     private level: Array<Array<number>> = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -31,6 +33,7 @@ export class ReflectionMappingScene extends AbstractScene {
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ];
 
+    private backgroundImage: BackgroundImage;
     private firstOff: number;
 
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * 180);
@@ -43,7 +46,12 @@ export class ReflectionMappingScene extends AbstractScene {
             TextureUtils.load(require('./../../assets/textures/doom_tiles.png')).then((texture: Texture) => {
                 texture.blocky(); // remove this hack
                 this.texture = texture;
-            })
+            }),
+            BackgroundImage.create(require('./../../assets/textures/plasma-gun.png'))
+                .then((backgroundImage: BackgroundImage) => {
+                    backgroundImage.setPosition(640-64*4, 369-64*4, 128*4, 64*4);
+                    this.backgroundImage = backgroundImage;
+                })
         ]);
     }
 
@@ -85,7 +93,7 @@ export class ReflectionMappingScene extends AbstractScene {
         this.firstOff = 6 * 4;
         xIdx = 0;
         yIdx = 1;
-        array = array.concat( [
+        array = array.concat([
             -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 0.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
@@ -95,8 +103,8 @@ export class ReflectionMappingScene extends AbstractScene {
 
         ]);
         yIdx = 7;
-        array = array.concat( [
-            
+        array = array.concat([
+
             0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
             -0.5, 1.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
@@ -120,10 +128,11 @@ export class ReflectionMappingScene extends AbstractScene {
 
         this.texture.bind();
         vao.bind();
+        this.vao = vao;
     }
 
     public hit(pos: Vector4f): boolean {
-       
+
 
         let val = this.level[Math.floor(pos.x)][Math.floor(pos.z)];
         if (val === 1 || val === undefined) {
@@ -135,6 +144,11 @@ export class ReflectionMappingScene extends AbstractScene {
     public draw(): void {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        this.vao.bind();
+        this.texture.bind();
+        this.colorShaderProgram.use();
+        gl.cullFace(gl.BACK);
+        gl.enable(gl.CULL_FACE);
         let oldPos = new Vector4f(this.camera.position.x, this.camera.position.y, this.camera.position.z);
         if (this.keyboard.isDown(Keyboard.UP)) {
             this.camera.moveForward(0.03, 1.0);
@@ -158,54 +172,54 @@ export class ReflectionMappingScene extends AbstractScene {
 
         // up movement collision
         if (newPos.z - oldPos.z > 0) {
-          
+
             const leftTop = newPos.add(new Vector4f(-0.25, 0.0, 0.25));
             const rightTop = newPos.add(new Vector4f(0.25, 0.0, 0.25));
-        
 
-            if (this.hit(leftTop)  || this.hit(rightTop)) {
-                
+
+            if (this.hit(leftTop) || this.hit(rightTop)) {
+
                 newPos.z = Math.floor(leftTop.z) - 0.2501;
             }
-            
-           
+
+
         } else if (newPos.z - oldPos.z < 0) {
-           
+
 
             const leftBottom = newPos.add(new Vector4f(-0.25, 0.0, -0.25));
             const rightBottom = newPos.add(new Vector4f(0.25, 0.0, -0.25));
-           
+
             if (this.hit(leftBottom) || this.hit(rightBottom)) {
-               
+
                 newPos.z = Math.floor(leftBottom.z) + 1 + 0.2501;
-                
+
             }
-           
+
         }
 
         newPos.x = this.camera.position.x;
 
         // right
         if (newPos.x - oldPos.x > 0) {
-            
+
             const leftTop2 = newPos.add(new Vector4f(0.25, 0.0, 0.25));
             const rightTop2 = newPos.add(new Vector4f(0.25, 0.0, -0.25));
-         
-          
-            if (this.hit(leftTop2)  || this.hit(rightTop2)) {
-               
+
+
+            if (this.hit(leftTop2) || this.hit(rightTop2)) {
+
                 newPos.x = Math.floor(leftTop2.x) - 0.2501;
             }
-           
+
         } else if (newPos.x - oldPos.x < 0) {
-            
+
             const leftTop3 = newPos.add(new Vector4f(-0.25, 0.0, 0.25));
             const rightTop3 = newPos.add(new Vector4f(-0.25, 0.0, -0.25));
             if (this.hit(leftTop3) || this.hit(rightTop3)) {
-                
+
                 newPos.x = Math.floor(leftTop3.x) + 1 + 0.2501;
             }
-           
+
         }
 
         this.camera.position = newPos;
@@ -226,11 +240,13 @@ export class ReflectionMappingScene extends AbstractScene {
 
                     this.colorShaderProgram.setProjectionMatrix(cam2);
                     // this.vbo.draw(this.length);
-                    gl.drawArrays(gl.TRIANGLES, this.firstOff, 6*2);
+                    gl.drawArrays(gl.TRIANGLES, this.firstOff, 6 * 2);
                 }
             }
         }
 
+        this.backgroundImage.setPosition(640-64*4, 369-(64-15)*4+Math.sin(Date.now()*0.003)*3*4, 128*4, 64*4);
+        this.backgroundImage.draw();
     }
 
     private computeProjectionMatrix(): mat4 {

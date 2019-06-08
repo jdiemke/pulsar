@@ -1,15 +1,15 @@
 import { mat4 } from 'gl-matrix';
 import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
-import { GreenShaderProgram } from './GreenShaderProgram';
+import { Texture } from '../../core/texture/Texture';
+import { TextureUtils } from '../../core/utils/TextureUtils';
 import { Face } from '../../model/face';
 import { Mesh } from '../../model/mesh';
 import { WavefrontLoader } from '../../model/WavefrontLoader';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
-import { TextureUtils } from '../../core/utils/TextureUtils';
-import { Texture } from '../../core/texture/Texture';
 import { BackgroundImage } from './Effect';
+import { GreenShaderProgram } from './GreenShaderProgram';
 
 export class Scene extends AbstractScene {
 
