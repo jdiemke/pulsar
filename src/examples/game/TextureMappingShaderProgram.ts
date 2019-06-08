@@ -7,29 +7,27 @@ import { VertexShader } from '../../core/shader/VertexShader';
 import { ShaderUtils } from '../../core/utils/ShaderUtils';
 import { Vector4f } from '../torus-knot/Vector4f';
 
+export class TextureMappingShaderProgram extends ShaderProgram {
 
-export class GreenShaderProgram extends ShaderProgram {
-
-    public static create(): Promise<GreenShaderProgram> {
+    public static create(): Promise<TextureMappingShaderProgram> {
         const startTime: number = Date.now();
 
         return Promise.all([
-            ShaderUtils.loadShader(require('./assets/VertexShader.vs')),
-            ShaderUtils.loadShader(require('./assets/FragmentShader.fs')),
+            ShaderUtils.loadShader(require('./shaders/SphereMapping.vert')),
+            ShaderUtils.loadShader(require('./shaders/SphereMapping.frag')),
         ]).then((value: [string, string]) => {
-            return new GreenShaderProgram(value[0], value[1]);
+            return new TextureMappingShaderProgram(value[0], value[1]);
         }).finally(() => {
-            GreenShaderProgram.logger.measure((Date.now() - startTime),
+            TextureMappingShaderProgram.logger.measure((Date.now() - startTime),
                 'Finished creating shader program.'
             );
         });
     }
 
-    private static logger: Logger = new Logger(GreenShaderProgram.name);
+    private static logger: Logger = new Logger('TextureMappingShaderProgram');
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;
-    private textureUnit: WebGLUniformLocation;
     private color: WebGLUniformLocation;
 
     constructor(vertexShaderSource: string, fragmentShaderSource: string) {
@@ -45,22 +43,14 @@ export class GreenShaderProgram extends ShaderProgram {
         gl.uniformMatrix4fv(this.modelViewMatrixLocation, false, projectionMatrix);
     }
 
-    public setTextureUnit(tex: number): void {
-        gl.uniform1i(this.textureUnit, tex);
-    }
-
     public setColor(color: Vector4f): void {
-        gl.uniform4fv(this.color, new Float32Array([color.x, color.y,color.z, 1]));
+        gl.uniform4fv(this.color, new Float32Array([color.x, color.y,color.z, 0]));
     }
-
 
     private setupUniforms(): void {
         this.modelViewMatrixLocation = gl.getUniformLocation(this.program, 'modelViewMatrix');
         this.projectionMatrixLocation = gl.getUniformLocation(this.program, 'projectionMatrix');
-        this.textureUnit = gl.getUniformLocation(this.program, 'utexture');
         this.color = gl.getUniformLocation(this.program, 'color');
     }
-
-
 
 }

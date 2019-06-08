@@ -17,6 +17,7 @@ export class BackgroundImage {
     public texture: Texture;
     public vertexArrayObject: VertexArrayObject;
     public position: Vector4f;
+    public color: Vector4f;
 
     public draw(): void {
         gl.disable(gl.CULL_FACE);
@@ -26,6 +27,7 @@ export class BackgroundImage {
         this.vertexArrayObject.bind();
         this.shader.use();
         this.shader.setProjectionMatrix(this.computeModelViewMatrix(this.position.x, this.position.y, this.position.z, this.position.w));
+        this.shader.setColor(this.color);
         gl.enable(gl.BLEND);
         gl.enable(gl.BLEND);
         
@@ -39,6 +41,10 @@ export class BackgroundImage {
 
     public setPosition(x: number, y: number, width: number, height: number): void {
         this.position = new Vector4f(x, y, width, height);
+    }
+
+    public setColor(color: Vector4f): void {
+        this.color = color;
     }
 
     private computeModelViewMatrix(x: number, y: number, width: number, height: number): mat4 {
@@ -84,6 +90,7 @@ export class BackgroundImage {
         this.shader.use();
 
         this.shader.setModelViewMatrix(this.computeProjectionMatrix());
+        this.shader.setColor(new Vector4f(1,1,1));
         // tslint:disable-next-line: max-line-length
         this.shader.setTextureUnit(0);
     }

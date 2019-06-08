@@ -38,6 +38,18 @@ export class ControllableCamera {
         this.yaw += distance;
     }
 
+    public moveLeft(speed: number, deltaTime: number): void {
+        let distance = speed * deltaTime;
+        this.position.x += distance * -Math.sin(this.yaw+Math.PI/2);
+        this.position.z += distance * -Math.cos(this.yaw+Math.PI/2);
+    }
+
+    public moveRight(speed: number, deltaTime: number): void {
+        let distance = speed * deltaTime;
+        this.position.x += distance * -Math.sin(this.yaw-Math.PI/2);
+        this.position.z += distance * -Math.cos(this.yaw-Math.PI/2);
+    }
+
     public turnRight(speed: number, deltaTime: number): void {
         let distance = speed * deltaTime;
         this.yaw -= distance;
