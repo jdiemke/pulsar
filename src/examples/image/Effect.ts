@@ -3,9 +3,9 @@ import { Texture, TextureUnit } from '../../core/texture/Texture';
 import { TextureUtils } from '../../core/utils/TextureUtils';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
+import { Vector4f } from '../torus-knot/Vector4f';
 import { context as gl } from './../../core/RenderingContext';
 import { GreenShaderProgram } from './GreenShaderProgram';
-import { Vector4f } from '../torus-knot/Vector4f';
 
 export class BackgroundImage {
 
@@ -17,7 +17,7 @@ export class BackgroundImage {
     public texture: Texture;
     public vertexArrayObject: VertexArrayObject;
     public position: Vector4f;
-    public color: Vector4f;
+    public color: Vector4f = new Vector4f(1, 1, 1);
 
     public draw(): void {
         gl.disable(gl.CULL_FACE);
@@ -29,8 +29,7 @@ export class BackgroundImage {
         this.shader.setProjectionMatrix(this.computeModelViewMatrix(this.position.x, this.position.y, this.position.z, this.position.w));
         this.shader.setColor(this.color);
         gl.enable(gl.BLEND);
-        gl.enable(gl.BLEND);
-        
+
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
         gl.disable(gl.BLEND);
@@ -90,7 +89,7 @@ export class BackgroundImage {
         this.shader.use();
 
         this.shader.setModelViewMatrix(this.computeProjectionMatrix());
-        this.shader.setColor(new Vector4f(1,1,1));
+        this.shader.setColor(new Vector4f(1, 1, 1));
         // tslint:disable-next-line: max-line-length
         this.shader.setTextureUnit(0);
     }
