@@ -10,6 +10,7 @@ import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
 import { BackgroundImage } from './Effect';
 import { GreenShaderProgram } from './GreenShaderProgram';
+import { Vector4f } from '../torus-knot/Vector4f';
 
 export class Scene extends AbstractScene {
 
@@ -56,6 +57,7 @@ export class Scene extends AbstractScene {
 
         this.colorShaderProgram.use();
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+        this.colorShaderProgram.setColor(new Vector4f(1, 1, 1));
         vba.bind();
         this.texture.bind();
     }

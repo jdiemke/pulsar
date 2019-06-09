@@ -1,7 +1,7 @@
 import { mat4 } from 'gl-matrix';
 import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
-import { Texture } from '../../core/texture/Texture';
+import { Texture, TextureUnit } from '../../core/texture/Texture';
 import { TextureUtils } from '../../core/utils/TextureUtils';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
@@ -10,6 +10,8 @@ import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
 import { Keyboard } from './Keyboard';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
+import { GreenShaderProgram } from './GreenShaderProgram';
+import { ElementBufferObject } from '../../ElementBufferObject';
 
 export class ReflectionMappingScene extends AbstractScene {
 
@@ -17,8 +19,12 @@ export class ReflectionMappingScene extends AbstractScene {
     private modelViewMatrix: mat4 = mat4.create();
 
     private colorShaderProgram: TextureMappingShaderProgram;
+    private spriteShader: GreenShaderProgram;
     private vbo: VertexBufferObject;
+    private vba: VertexArrayObject;
+    private ibo: ElementBufferObject;
     private texture: Texture;
+    private texture2: Texture;
     private length: number;
     private vao: VertexArrayObject;
     private level: Array<Array<number>> = [
@@ -57,10 +63,17 @@ export class ReflectionMappingScene extends AbstractScene {
     private backgroundImage: BackgroundImage;
     private firstOff: number;
 
+    private array: Array<number> = new Array<number>();
+    private array2: Array<number> = new Array<number>();
+
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * 180);
     private keyboard: Keyboard = new Keyboard();
     public preload(): Promise<any> {
         return Promise.all([
+            GreenShaderProgram.create().then(
+                (shaderProgram: GreenShaderProgram) => {
+                    this.spriteShader = shaderProgram;
+                }),
             TextureMappingShaderProgram.create().then((shaderProgram: TextureMappingShaderProgram) => {
                 this.colorShaderProgram = shaderProgram;
             }),
@@ -72,7 +85,11 @@ export class ReflectionMappingScene extends AbstractScene {
                 .then((backgroundImage: BackgroundImage) => {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.backgroundImage = backgroundImage;
-                })
+                }),
+            TextureUtils.load(require('./../../assets/textures/shaman.png')).then((texture: Texture) => {
+                texture.blocky();
+                this.texture2 = texture;
+            }),
         ]);
     }
 
@@ -80,7 +97,7 @@ export class ReflectionMappingScene extends AbstractScene {
 
         let xIdx = 1;
         let yIdx = 2;
-        let array = [
+        let tileArray = [
             -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 0.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
@@ -114,7 +131,7 @@ export class ReflectionMappingScene extends AbstractScene {
         this.firstOff = 6 * 4;
         xIdx = 0;
         yIdx = 1;
-        array = array.concat([
+        tileArray = tileArray.concat([
             -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 0.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
             0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
@@ -124,7 +141,7 @@ export class ReflectionMappingScene extends AbstractScene {
 
         ]);
         yIdx = 7;
-        array = array.concat([
+        tileArray = tileArray.concat([
 
             0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
             -0.5, 1.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
@@ -135,7 +152,7 @@ export class ReflectionMappingScene extends AbstractScene {
 
         ]);
 
-        this.vbo = new VertexBufferObject(array);
+        this.vbo = new VertexBufferObject(tileArray);
         const vao: VertexArrayObject = new VertexArrayObject();
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('vertex'), 3, 5, 0);
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('texcoord'), 2, 5, 3);
@@ -145,11 +162,48 @@ export class ReflectionMappingScene extends AbstractScene {
         gl.enable(gl.CULL_FACE);
 
         this.colorShaderProgram.use();
-        this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
+        this.colorShaderProgram.setModelViewMatrix2(this.computeProjectionMatrix());
 
         this.texture.bind();
         vao.bind();
         this.vao = vao;
+        this.initSprites();
+    }
+
+    public initSprites(): void {
+        // this.particles = this.particles.fill(null).map(x => new Vector4f(0, 0, 0, 1));
+
+        const array: Array<number> = this.array;
+        array.push(-0.5, 1.0, 0.0, 0.0, 0.0);
+        array.push(0.5, 1.0, 0.0, 1.0, 0.0);
+        array.push(0.5, -0.0, 0.0, 1.0, 1.0);
+        array.push(-0.5, -0.0, 0.0, 0.0, 1.0);
+
+        this.array2.push(3, 1, 0);
+        this.array2.push(3, 2, 1);
+
+        const vbo: VertexBufferObject = new VertexBufferObject(array);
+
+        const vba: VertexArrayObject = new VertexArrayObject();
+        this.vba = vba;
+        const ibo: ElementBufferObject = new ElementBufferObject(this.array2);
+        this.ibo = ibo;
+        // this.posArray = new VertexBufferObject(null, 100 * 3 * 4, gl.DYNAMIC_DRAW);
+
+        const vertex: number = this.spriteShader.getAttributeLocation('vertex');
+        const texcoord: number = this.spriteShader.getAttributeLocation('texcoord');
+        // const position: number = this.colorShaderProgram.getAttributeLocation('position');
+
+        vba.bindVertexBufferToAttribute(vbo, vertex, 3, 5, 0);
+        vba.bindVertexBufferToAttribute(vbo, texcoord, 2, 5, 3);
+        // vba.bindVertexBufferToAttribute(this.posArray, position, 3, 3, 0, 1);
+        vba.bindElementBuffer(ibo);
+
+
+        this.spriteShader.use();
+        this.spriteShader.setModelViewMatrix(this.computeProjectionMatrix());
+
+        gl.cullFace(gl.BACK);
     }
 
     public hit(pos: Vector4f): boolean {
@@ -165,12 +219,34 @@ export class ReflectionMappingScene extends AbstractScene {
 
         this.InputAndCollision();
         this.drawLevel();
+        this.drawBalls();
         this.drawWeapon();
+    }
+
+    private drawBalls(): void {
+        this.vba.bind();
+        gl.depthMask(false);
+        this.spriteShader.use();
+
+        this.texture2.bind(TextureUnit.UNIT_0);
+        gl.enable(gl.BLEND);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+
+        const mv: mat4 = this.camera.getMatrix();
+
+        this.spriteShader.setProjectionMatrix(mv);
+
+
+        this.spriteShader.setPos(new Vector4f(5.5, -0.5, 1.5));
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+
+        this.spriteShader.setPos(new Vector4f(1.5, -0.5, 4.5));
+        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
     }
 
     private drawWeapon(): void {
         const color: number = this.levelColor[Math.floor(this.camera.position.x)][Math.floor(this.camera.position.z)];
-        
+
         this.backgroundImage.setColor(this.colorList[color]);
         this.backgroundImage.setPosition(
             640 - 64 * 4,
@@ -259,16 +335,16 @@ export class ReflectionMappingScene extends AbstractScene {
         for (let i = 0; i < this.level.length; i++) {
             for (let j = 0; j < this.level[i].length; j++) {
 
-                
+
                 this.colorShaderProgram.setColor(this.colorList[this.levelColor[i][j]]);
 
                 if (this.level[i][j] === 1) {
                     let cam2 = this.computeModelViewMatrix(i, j, cam);
-                    this.colorShaderProgram.setProjectionMatrix(cam2);
+                    this.colorShaderProgram.setModelViewMatrix(cam2);
                     gl.drawArrays(gl.TRIANGLES, 0, this.length);
                 } else {
                     let cam2 = this.computeModelViewMatrix(i, j, cam);
-                    this.colorShaderProgram.setProjectionMatrix(cam2);
+                    this.colorShaderProgram.setModelViewMatrix(cam2);
                     gl.drawArrays(gl.TRIANGLES, this.firstOff, 6 * 2);
                 }
             }
