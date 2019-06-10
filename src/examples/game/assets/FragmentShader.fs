@@ -10,6 +10,10 @@ out vec4 frag;
 uniform sampler2D utexture;
 
 void main() {
-    frag = texture(utexture, tex) * col;
+    vec4 texel = texture(utexture, tex) * col;
+    if (texel.a < 0.5) {
+        discard;
+    }
+    frag = texel;
 }
 

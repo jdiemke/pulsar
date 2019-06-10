@@ -39,9 +39,9 @@ export class ReflectionMappingScene extends AbstractScene {
     ];
 
     private levelColor: Array<Array<number>> = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 4, 3, 5, 5],
-        [1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, 3, 5],
-        [1, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 3],
+        [1, 1, 1, 1, 1, 3, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 4, 3, 5, 5],
+        [1, 2, 2, 2, 2, 3, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, 3, 5],
+        [1, 2, 2, 2, 2, 3, 2, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 3],
         [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
         [3, 3, 3, 3, 1, 3, 3, 3, 5, 5, 5, 5, 5, 3, 4, 1, 1, 1, 0, 0, 1],
         [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 4, 0, 0, 4],
@@ -211,9 +211,8 @@ export class ReflectionMappingScene extends AbstractScene {
 
     private drawEnemies(): void {
         this.vba.bind();
-        gl.depthMask(false);
-        this.spriteShader.use();
 
+        this.spriteShader.use();
         this.texture2.bind(TextureUnit.UNIT_0);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
@@ -222,20 +221,24 @@ export class ReflectionMappingScene extends AbstractScene {
 
         this.spriteShader.setProjectionMatrix(mv);
 
-
         const enemyPos: Vector4f = new Vector4f(
             5.5 + Math.sin(Date.now() * 0.0005) * 2,
             -0.5,
             2.0 + Math.sin(Date.now() * 0.0014) * 0.5
         );
-        const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemyPos.x)][Math.floor(enemyPos.z)]];
-        this.spriteShader.setColor(color);
-        this.spriteShader.setPos(enemyPos);
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
 
-        this.spriteShader.setColor(this.colorList[0]);
-        this.spriteShader.setPos(new Vector4f(1.5, -0.5, 4.5));
-        gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+        const enemyList: Array<Vector4f> = [
+            enemyPos,
+            new Vector4f(1.5, -0.5, 4.5),
+            new Vector4f(1.5, -0.5, 5.5)
+        ];
+
+        enemyList.forEach((enemy: Vector4f) => {
+            const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.x)][Math.floor(enemy.z)]];
+            this.spriteShader.setColor(color);
+            this.spriteShader.setPos(enemy);
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+        });
     }
 
     private drawWeapon(): void {

@@ -24,7 +24,7 @@ export class GreenShaderProgram extends ShaderProgram {
         });
     }
 
-    private static logger: Logger = new Logger(GreenShaderProgram.name);
+    private static logger: Logger = new Logger('SpriteSahderProgram');
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;
@@ -69,7 +69,5 @@ export class GreenShaderProgram extends ShaderProgram {
         this.pos = gl.getUniformLocation(this.program, 'position');
         this.color = gl.getUniformLocation(this.program, 'color');
     }
-
-
-
+    
 }
