@@ -280,7 +280,6 @@ export class ReflectionMappingScene extends AbstractScene {
 
         if (this.keyboard.isDown(Keyboard.LEFT)) {
             this.camera.turnLeft(0.02, 1.0);
-            moving = true;
         }
 
         if (this.keyboard.isDown(Keyboard.KEY_A)) {
@@ -295,7 +294,6 @@ export class ReflectionMappingScene extends AbstractScene {
 
         if (this.keyboard.isDown(Keyboard.RIGHT)) {
             this.camera.turnRight(0.02, 1.0);
-            moving = true;
         }
 
         if (moving) {
