@@ -7,7 +7,6 @@ import { VertexShader } from '../../core/shader/VertexShader';
 import { ShaderUtils } from '../../core/utils/ShaderUtils';
 import { Vector4f } from '../torus-knot/Vector4f';
 
-
 export class GreenShaderProgram extends ShaderProgram {
 
     public static create(): Promise<GreenShaderProgram> {
@@ -25,7 +24,7 @@ export class GreenShaderProgram extends ShaderProgram {
         });
     }
 
-    private static logger: Logger = new Logger(GreenShaderProgram.name);
+    private static logger: Logger = new Logger('BackgroundImageShader');
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;

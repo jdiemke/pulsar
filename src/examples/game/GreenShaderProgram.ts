@@ -31,6 +31,7 @@ export class GreenShaderProgram extends ShaderProgram {
     private textureUnit: WebGLUniformLocation;
     private textureUnit2: WebGLUniformLocation;
     private pos: WebGLUniformLocation;
+    private color: WebGLUniformLocation;
 
     constructor(vertexShaderSource: string, fragmentShaderSource: string) {
         super(new VertexShader(vertexShaderSource), new FragmentShader(fragmentShaderSource));
@@ -52,7 +53,11 @@ export class GreenShaderProgram extends ShaderProgram {
     }
 
     public setPos(pos: Vector4f): void {
-        gl.uniform3f(this.pos,pos.x, pos.y, pos.z);
+        gl.uniform3f(this.pos, pos.x, pos.y, pos.z);
+    }
+
+    public setColor(col: Vector4f): void {
+        gl.uniform4f(this.color, col.x, col.y, col.z, col.w);
     }
 
     private setupUniforms(): void {
@@ -62,6 +67,7 @@ export class GreenShaderProgram extends ShaderProgram {
         this.textureUnit2 = gl.getUniformLocation(this.program, 'utexture2');
 
         this.pos = gl.getUniformLocation(this.program, 'position');
+        this.color = gl.getUniformLocation(this.program, 'color');
     }
 
 

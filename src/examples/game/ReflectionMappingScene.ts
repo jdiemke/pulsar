@@ -22,7 +22,6 @@ export class ReflectionMappingScene extends AbstractScene {
     private spriteShader: GreenShaderProgram;
     private vbo: VertexBufferObject;
     private vba: VertexArrayObject;
-    private ibo: ElementBufferObject;
     private texture: Texture;
     private texture2: Texture;
     private length: number;
@@ -43,9 +42,9 @@ export class ReflectionMappingScene extends AbstractScene {
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 4, 3, 5, 5],
         [1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, 3, 5],
         [1, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 3],
-        [1, 2, 2, 1, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
-        [1, 2, 2, 1, 1, 3, 3, 3, 5, 5, 5, 5, 5, 3, 4, 1, 1, 1, 0, 0, 1],
-        [1, 2, 2, 1, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 4, 0, 0, 4],
+        [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
+        [3, 3, 3, 3, 1, 3, 3, 3, 5, 5, 5, 5, 5, 3, 4, 1, 1, 1, 0, 0, 1],
+        [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 4, 0, 0, 4],
         [1, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 4, 0, 0, 1, 1, 3, 4, 4, 3],
         [1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0, 1, 1, 5, 3, 3, 5],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 5, 5, 5, 5]
@@ -62,9 +61,6 @@ export class ReflectionMappingScene extends AbstractScene {
 
     private backgroundImage: BackgroundImage;
     private firstOff: number;
-
-    private array: Array<number> = new Array<number>();
-    private array2: Array<number> = new Array<number>();
 
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * 180);
     private keyboard: Keyboard = new Keyboard();
@@ -171,39 +167,29 @@ export class ReflectionMappingScene extends AbstractScene {
     }
 
     public initSprites(): void {
-        // this.particles = this.particles.fill(null).map(x => new Vector4f(0, 0, 0, 1));
+        const vertexData: Array<number> = [
+            -0.5, +1.0, +0.0, +0.0, +0.0,
+            +0.5, +1.0, +0.0, +1.0, +0.0,
+            +0.5, -0.0, +0.0, +1.0, +1.0,
+            -0.5, -0.0, +0.0, +0.0, +1.0
+        ];
 
-        const array: Array<number> = this.array;
-        array.push(-0.5, 1.0, 0.0, 0.0, 0.0);
-        array.push(0.5, 1.0, 0.0, 1.0, 0.0);
-        array.push(0.5, -0.0, 0.0, 1.0, 1.0);
-        array.push(-0.5, -0.0, 0.0, 0.0, 1.0);
+        const elementData: Array<number> = [
+            3, 1, 0, 3, 2, 1
+        ];
 
-        this.array2.push(3, 1, 0);
-        this.array2.push(3, 2, 1);
-
-        const vbo: VertexBufferObject = new VertexBufferObject(array);
-
+        const vbo: VertexBufferObject = new VertexBufferObject(vertexData);
+        const ibo: ElementBufferObject = new ElementBufferObject(elementData);
         const vba: VertexArrayObject = new VertexArrayObject();
-        this.vba = vba;
-        const ibo: ElementBufferObject = new ElementBufferObject(this.array2);
-        this.ibo = ibo;
-        // this.posArray = new VertexBufferObject(null, 100 * 3 * 4, gl.DYNAMIC_DRAW);
 
-        const vertex: number = this.spriteShader.getAttributeLocation('vertex');
-        const texcoord: number = this.spriteShader.getAttributeLocation('texcoord');
-        // const position: number = this.colorShaderProgram.getAttributeLocation('position');
-
-        vba.bindVertexBufferToAttribute(vbo, vertex, 3, 5, 0);
-        vba.bindVertexBufferToAttribute(vbo, texcoord, 2, 5, 3);
-        // vba.bindVertexBufferToAttribute(this.posArray, position, 3, 3, 0, 1);
+        vba.bindVertexBufferToAttribute(vbo, this.spriteShader.getAttributeLocation('vertex'), 3, 5, 0);
+        vba.bindVertexBufferToAttribute(vbo, this.spriteShader.getAttributeLocation('texcoord'), 2, 5, 3);
         vba.bindElementBuffer(ibo);
-
 
         this.spriteShader.use();
         this.spriteShader.setModelViewMatrix(this.computeProjectionMatrix());
 
-        gl.cullFace(gl.BACK);
+        this.vba = vba;
     }
 
     public hit(pos: Vector4f): boolean {
@@ -219,11 +205,11 @@ export class ReflectionMappingScene extends AbstractScene {
 
         this.InputAndCollision();
         this.drawLevel();
-        this.drawBalls();
+        this.drawEnemies();
         this.drawWeapon();
     }
 
-    private drawBalls(): void {
+    private drawEnemies(): void {
         this.vba.bind();
         gl.depthMask(false);
         this.spriteShader.use();
@@ -237,9 +223,17 @@ export class ReflectionMappingScene extends AbstractScene {
         this.spriteShader.setProjectionMatrix(mv);
 
 
-        this.spriteShader.setPos(new Vector4f(5.5, -0.5, 1.5));
+        const enemyPos: Vector4f = new Vector4f(
+            5.5 + Math.sin(Date.now() * 0.0005) * 2,
+            -0.5,
+            2.0 + Math.sin(Date.now() * 0.0014) * 0.5
+        );
+        const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemyPos.x)][Math.floor(enemyPos.z)]];
+        this.spriteShader.setColor(color);
+        this.spriteShader.setPos(enemyPos);
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
 
+        this.spriteShader.setColor(this.colorList[0]);
         this.spriteShader.setPos(new Vector4f(1.5, -0.5, 4.5));
         gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
     }
