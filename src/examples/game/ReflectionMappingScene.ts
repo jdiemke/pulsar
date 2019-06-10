@@ -3,15 +3,15 @@ import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
 import { Texture, TextureUnit } from '../../core/texture/Texture';
 import { TextureUtils } from '../../core/utils/TextureUtils';
+import { ElementBufferObject } from '../../ElementBufferObject';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
 import { BackgroundImage } from '../image/Effect';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
+import { GreenShaderProgram } from './GreenShaderProgram';
 import { Keyboard } from './Keyboard';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
-import { GreenShaderProgram } from './GreenShaderProgram';
-import { ElementBufferObject } from '../../ElementBufferObject';
 
 export class ReflectionMappingScene extends AbstractScene {
 
@@ -23,6 +23,7 @@ export class ReflectionMappingScene extends AbstractScene {
     private vbo: VertexBufferObject;
     private vba: VertexArrayObject;
     private texture: Texture;
+    private moveAnim: number = 0.0;
     private texture2: Texture;
     private length: number;
     private vao: VertexArrayObject;
@@ -209,6 +210,9 @@ export class ReflectionMappingScene extends AbstractScene {
         this.drawWeapon();
     }
 
+    /**
+     * https://www.khronos.org/opengl/wiki/Transparency_Sorting
+     */
     private drawEnemies(): void {
         this.vba.bind();
 
@@ -217,7 +221,12 @@ export class ReflectionMappingScene extends AbstractScene {
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
 
-        const mv: mat4 = this.camera.getMatrix();
+        // FIXME: move animation in 2 places: level drawing and enemies
+        const mv: mat4 = mat4.translate(
+            this.modelViewMatrix,
+            this.camera.getMatrix(),
+            [-0.0, -0.0 + Math.sin(this.moveAnim) * 0.025, -0.0]
+        );
 
         this.spriteShader.setProjectionMatrix(mv);
 
@@ -256,28 +265,41 @@ export class ReflectionMappingScene extends AbstractScene {
 
     private InputAndCollision(): void {
         let oldPos = new Vector4f(this.camera.position.x, this.camera.position.y, this.camera.position.z);
+
+        let moving: boolean = false;
+
         if (this.keyboard.isDown(Keyboard.UP)) {
             this.camera.moveForward(0.04, 1.0);
+            moving = true;
         }
 
         if (this.keyboard.isDown(Keyboard.DOWN)) {
             this.camera.moveBackward(0.04, 1.0);
+            moving = true;
         }
 
         if (this.keyboard.isDown(Keyboard.LEFT)) {
             this.camera.turnLeft(0.02, 1.0);
+            moving = true;
         }
 
         if (this.keyboard.isDown(Keyboard.KEY_A)) {
             this.camera.moveLeft(0.04, 1.0);
+            moving = true;
         }
 
         if (this.keyboard.isDown(Keyboard.KEY_D)) {
             this.camera.moveRight(0.04, 1.0);
+            moving = true;
         }
 
         if (this.keyboard.isDown(Keyboard.RIGHT)) {
             this.camera.turnRight(0.02, 1.0);
+            moving = true;
+        }
+
+        if (moving) {
+            this.moveAnim += 0.2;
         }
 
         let newPos = new Vector4f(oldPos.x, oldPos.y, oldPos.z);
@@ -332,7 +354,6 @@ export class ReflectionMappingScene extends AbstractScene {
         for (let i = 0; i < this.level.length; i++) {
             for (let j = 0; j < this.level[i].length; j++) {
 
-
                 this.colorShaderProgram.setColor(this.colorList[this.levelColor[i][j]]);
 
                 if (this.level[i][j] === 1) {
@@ -353,7 +374,7 @@ export class ReflectionMappingScene extends AbstractScene {
     }
 
     private computeModelViewMatrix(x: number, y: number, cam: mat4): mat4 {
-        mat4.translate(this.modelViewMatrix, cam, [-0.0, -0.5, -0.0]);
+        mat4.translate(this.modelViewMatrix, cam, [-0.0, -0.5 + Math.sin(this.moveAnim) * 0.025, -0.0]);
         let mat = mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [x + 0.5, 0, y + 0.5]);
         return mat;
     }
