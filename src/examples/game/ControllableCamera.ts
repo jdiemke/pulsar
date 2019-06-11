@@ -27,6 +27,14 @@ export class ControllableCamera {
         this.position.z += distance * -Math.cos(this.yaw);
     }
 
+    public getDirection(): Vector4f {
+        return new Vector4f(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
+    }
+
+    public getOrthoDirection(): Vector4f {
+        return new Vector4f(-Math.sin(this.yaw-Math.PI/2), 0, -Math.cos(this.yaw-Math.PI/2));
+    }
+
     public moveBackward(speed: number, deltaTime: number): void {
         let distance = speed * deltaTime;
         this.position.x -= distance * -Math.sin(this.yaw);

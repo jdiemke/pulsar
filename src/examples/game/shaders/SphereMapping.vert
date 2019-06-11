@@ -14,7 +14,7 @@ out vec4 col;
 
 void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vertex;
-    z = length(modelViewMatrix * vertex);
+    z = length((modelViewMatrix * vertex).xyz);
     tex = texcoord;
     col = color;
 

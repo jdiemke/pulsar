@@ -13,17 +13,51 @@ import { GreenShaderProgram } from './GreenShaderProgram';
 import { Keyboard } from './Keyboard';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
 
+class Bullet {
+    public pos: Vector4f;
+    public direction: Vector4f;
+    public hitTime: number;
+
+    constructor(pos: Vector4f, dir: Vector4f) {
+        this.pos = pos;
+        this.direction = dir;
+    }
+
+    public advance(level?: Array<Array<number>>): void {
+        this.pos = this.pos.add(this.direction.mul(0.2));
+    }
+}
+
+class BulletSystem {
+
+    public bullets: Array<Bullet> = new Array<Bullet>();
+    private index: number = 0;
+    private count: number = 10;
+
+    public addBullet(bullet: Bullet): void {
+        this.bullets[this.index] = bullet;
+        this.index = (this.index + 1) % this.count;
+    }
+
+}
+
+// tslint:disable-next-line: max-classes-per-file
 export class ReflectionMappingScene extends AbstractScene {
 
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
 
+    private lastBullet: number = Date.now();
     private colorShaderProgram: TextureMappingShaderProgram;
     private spriteShader: GreenShaderProgram;
     private vbo: VertexBufferObject;
     private vba: VertexArrayObject;
+
+    private bulletSystem: BulletSystem = new BulletSystem();
     private texture: Texture;
+    private bulletTexture: Texture;
     private moveAnim: number = 0.0;
+    private moveAnimScale: number = 0.015;
     private texture2: Texture;
     private length: number;
     private vao: VertexArrayObject;
@@ -31,19 +65,19 @@ export class ReflectionMappingScene extends AbstractScene {
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1],
-        [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1],
-        [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1],
-        [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1],
+        [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1],
+        [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     ];
 
     private levelColor: Array<Array<number>> = [
-        [1, 1, 1, 1, 1, 3, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 4, 3, 5, 5],
-        [1, 2, 2, 2, 2, 3, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, 3, 5],
-        [1, 2, 2, 2, 2, 3, 2, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 3],
-        [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
+        [1, 1, 1, 1, 1, 6, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 4, 3, 5, 5],
+        [1, 2, 2, 2, 2, 6, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, 3, 5],
+        [1, 2, 2, 2, 2, 6, 2, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 3],
+        [3, 3, 3, 3, 1, 6, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
         [3, 3, 3, 3, 1, 3, 3, 3, 5, 5, 5, 5, 5, 3, 4, 1, 1, 1, 0, 0, 1],
         [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 4, 0, 0, 4],
         [1, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 4, 0, 0, 1, 1, 3, 4, 4, 3],
@@ -58,6 +92,7 @@ export class ReflectionMappingScene extends AbstractScene {
         new Vector4f(0.5, 0.5, 0.5),
         new Vector4f(0.74, 0.74, 0.74),
         new Vector4f(0.25, 0.25, 0.25),
+        new Vector4f(0.75, 0.5, 0.5),
     ];
 
     private backgroundImage: BackgroundImage;
@@ -87,6 +122,10 @@ export class ReflectionMappingScene extends AbstractScene {
                 texture.blocky();
                 this.texture2 = texture;
             }),
+            TextureUtils.load(require('./../../assets/textures/bullet.png')).then((texture: Texture) => {
+                texture.blocky();
+                this.bulletTexture = texture;
+            })
         ]);
     }
 
@@ -154,7 +193,7 @@ export class ReflectionMappingScene extends AbstractScene {
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('vertex'), 3, 5, 0);
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('texcoord'), 2, 5, 3);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.28, 0.63, 0.21, 1.0);
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
 
@@ -225,10 +264,11 @@ export class ReflectionMappingScene extends AbstractScene {
         const mv: mat4 = mat4.translate(
             this.modelViewMatrix,
             this.camera.getMatrix(),
-            [-0.0, -0.0 + Math.sin(this.moveAnim) * 0.025, -0.0]
+            [-0.0, -0.0 + Math.sin(this.moveAnim) * this.moveAnimScale, -0.0]
         );
 
         this.spriteShader.setProjectionMatrix(mv);
+        this.spriteShader.setScale(1.0);
 
         const enemyPos: Vector4f = new Vector4f(
             5.5 + Math.sin(Date.now() * 0.0005) * 2,
@@ -243,11 +283,40 @@ export class ReflectionMappingScene extends AbstractScene {
         ];
 
         enemyList.forEach((enemy: Vector4f) => {
+
             const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.x)][Math.floor(enemy.z)]];
             this.spriteShader.setColor(color);
             this.spriteShader.setPos(enemy);
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
         });
+
+        if (this.bulletSystem.bullets) {
+            this.bulletTexture.bind(TextureUnit.UNIT_0);
+            this.spriteShader.setColor(new Vector4f(1, 1, 1));
+
+            this.bulletSystem.bullets.forEach(bullet => {
+
+                if (!bullet.hitTime || bullet.hitTime + 200 > Date.now()) {
+                    const pos = bullet.pos;
+                    if (bullet.hitTime) {
+
+                        let scale;
+                        if (Date.now() - bullet.hitTime < 100) {
+                            scale = Math.sin(Math.PI / 200 * (Date.now() - bullet.hitTime)) * 0.1;
+                        } else {
+                            scale = Math.sin(Math.PI / 200 * (Date.now() - (bullet.hitTime))) * (0.1 + 0.15);
+                        }
+                        this.spriteShader.setScale(scale + 0.15);
+                        this.spriteShader.setPos(pos.sub(new Vector4f(0, scale / 2, 0)));
+                    } else {
+                        this.spriteShader.setScale(0.15);
+                        this.spriteShader.setPos(pos);
+                    }
+
+                    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+                }
+            });
+        }
     }
 
     private drawWeapon(): void {
@@ -339,6 +408,39 @@ export class ReflectionMappingScene extends AbstractScene {
         }
 
         this.camera.position = newPos;
+
+        if (this.bulletSystem.bullets) {
+            this.bulletSystem.bullets.forEach(bullet => {
+                if (!bullet.hitTime) {
+                    const oldPos = bullet.pos;
+                    bullet.advance();
+                    if (this.hit(bullet.pos)) {
+                        bullet.pos = oldPos;
+                        bullet.hitTime = Date.now();
+                    }
+                }
+            });
+        }
+
+        if (this.keyboard.isDown(Keyboard.KEY_L) && this.lastBullet + 200 < Date.now()) {
+            this.lastBullet = Date.now();
+            this.bulletSystem.addBullet(new Bullet(
+                new Vector4f(
+                    this.camera.position.x,
+                    this.camera.position.y - 0.25,
+                    this.camera.position.z
+                ).add(this.camera.getOrthoDirection().mul(0.10)).add(
+                    this.camera.getDirection().mul(0.25)
+                ),
+                this.camera.getDirection()
+            ));
+        }
+        console.log('bullets: ', this.bulletSystem.bullets.length);
+        console.log('inactive bullets: ',
+            this.bulletSystem.bullets.filter(bullet => {
+                
+                return (bullet.hitTime + 200) < Date.now();
+            }).length);
     }
 
     private drawLevel(): void {
@@ -368,11 +470,11 @@ export class ReflectionMappingScene extends AbstractScene {
     }
 
     private computeProjectionMatrix(): mat4 {
-        return mat4.perspective(this.projectionMatrix, 45 * Math.PI / 180, 640 / 360, 0.1, 40.0);
+        return mat4.perspective(this.projectionMatrix, 45 * Math.PI / 180, 640 / 360, 0.1, 100.0);
     }
 
     private computeModelViewMatrix(x: number, y: number, cam: mat4): mat4 {
-        mat4.translate(this.modelViewMatrix, cam, [-0.0, -0.5 + Math.sin(this.moveAnim) * 0.025, -0.0]);
+        mat4.translate(this.modelViewMatrix, cam, [-0.0, -0.5 + Math.sin(this.moveAnim) * this.moveAnimScale, -0.0]);
         let mat = mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [x + 0.5, 0, y + 0.5]);
         return mat;
     }
