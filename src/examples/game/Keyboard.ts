@@ -7,6 +7,12 @@ export class Keyboard {
     public static KEY_A: number = 65;
     public static KEY_D: number = 68;
     public static KEY_L: number = 76;
+    public static KEY_W: number = Keyboard.getCode('W');
+    public static KEY_S: number = Keyboard.getCode('S');
+
+    public static getCode(key: string): number {
+        return key.charCodeAt(0);
+    }
 
     private pressed: Array<boolean>;
 

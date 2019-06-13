@@ -8,24 +8,25 @@ export class Window {
 
     private logger: Logger = new Logger('Window');
     private scene: AbstractScene;
+    private canvas: HTMLCanvasElement;
 
     public constructor(elementId: string, private width: number, private height: number,
-                       scene?: AbstractScene) {
+        scene?: AbstractScene) {
 
         this.scene = scene;
-        const canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById(elementId);
+        const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById(elementId);
         canvas.width = width;
         canvas.height = height;
 
         canvas.style.cssText = 'image-rendering: optimizeSpeed;' + // FireFox < 6.0
-        'image-rendering: -moz-crisp-edges;' + // FireFox
-        'image-rendering: -o-crisp-edges;' +  // Opera
-        'image-rendering: -webkit-crisp-edges;' + // Chrome
-        'image-rendering: crisp-edges;' + // Chrome
-        'image-rendering: -webkit-optimize-contrast;' + // Safari
-        'image-rendering: pixelated; ' + // Future browsers
-        '-ms-interpolation-mode: nearest-neighbor;'; // IE
-        
+            'image-rendering: -moz-crisp-edges;' + // FireFox
+            'image-rendering: -o-crisp-edges;' +  // Opera
+            'image-rendering: -webkit-crisp-edges;' + // Chrome
+            'image-rendering: crisp-edges;' + // Chrome
+            'image-rendering: -webkit-optimize-contrast;' + // Safari
+            'image-rendering: pixelated; ' + // Future browsers
+            '-ms-interpolation-mode: nearest-neighbor;'; // IE
+
         const contextAttributes: WebGLContextAttributes = {
             antialias: true,
             premultipliedAlpha: false
@@ -44,10 +45,12 @@ export class Window {
 
         canvas.addEventListener('click', (event: MouseEvent) => {
             event.preventDefault();
-            FullscreenUtils.toggleFullscreen(canvas);
+            // FullscreenUtils.enterFullscreen(canvas);
+            canvas.requestPointerLock();
         });
 
         this.draw = this.draw.bind(this);
+        this.canvas = canvas;
         this.logger.info('BUILD DATE:', BUILD_TIME);
     }
 
@@ -58,7 +61,7 @@ export class Window {
     public start(): void {
         this.scene.preload().then(() => {
             this.defaultInitialization();
-            this.scene.init();
+            this.scene.init(this.canvas);
             this.draw();
         });
     }

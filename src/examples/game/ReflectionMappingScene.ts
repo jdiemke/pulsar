@@ -129,7 +129,31 @@ export class ReflectionMappingScene extends AbstractScene {
         ]);
     }
 
-    public init(): void {
+    private turnRight: number = 0;
+    private turnLeft: number = 0;
+    private mouseDown: boolean = false;
+
+    public init(canvas: HTMLCanvasElement): void {
+        canvas.addEventListener('mousedown', (event: MouseEvent) => {
+            this.mouseDown = true;
+        });
+        canvas.addEventListener('mouseup', (event: MouseEvent) => {
+            this.mouseDown = false;
+        });
+
+        canvas.addEventListener('mousemove', (event: MouseEvent) => {
+            if (document.pointerLockElement) {
+                if (event.movementX > 0) {
+                    this.turnRight += event.movementX;
+                }
+
+                if (event.movementX < 0) {
+                    this.turnLeft += -event.movementX;
+                }
+                console.log(event.movementX);
+                console.log(event.movementY);
+            }
+        });
 
         let xIdx = 1;
         let yIdx = 2;
@@ -337,18 +361,19 @@ export class ReflectionMappingScene extends AbstractScene {
 
         let moving: boolean = false;
 
-        if (this.keyboard.isDown(Keyboard.UP)) {
+        if (this.keyboard.isDown(Keyboard.KEY_W)) {
             this.camera.moveForward(0.04, 1.0);
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.DOWN)) {
+        if (this.keyboard.isDown(Keyboard.KEY_S)) {
             this.camera.moveBackward(0.04, 1.0);
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.LEFT)) {
-            this.camera.turnLeft(0.02, 1.0);
+        if (this.keyboard.isDown(Keyboard.LEFT) || this.turnLeft) {
+            this.camera.turnLeft(this.turnLeft * 0.002, 1.0);
+            this.turnLeft = 0;
         }
 
         if (this.keyboard.isDown(Keyboard.KEY_A)) {
@@ -361,8 +386,9 @@ export class ReflectionMappingScene extends AbstractScene {
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.RIGHT)) {
-            this.camera.turnRight(0.02, 1.0);
+        if (this.keyboard.isDown(Keyboard.RIGHT) || this.turnRight) {
+            this.camera.turnRight(this.turnRight * 0.002, 1.0);
+            this.turnRight = 0;
         }
 
         if (moving) {
@@ -422,25 +448,27 @@ export class ReflectionMappingScene extends AbstractScene {
             });
         }
 
-        if (this.keyboard.isDown(Keyboard.KEY_L) && this.lastBullet + 200 < Date.now()) {
+        if ((this.keyboard.isDown(Keyboard.KEY_L) || this.mouseDown) && this.lastBullet + 200 < Date.now()) {
             this.lastBullet = Date.now();
             this.bulletSystem.addBullet(new Bullet(
                 new Vector4f(
                     this.camera.position.x,
-                    this.camera.position.y - 0.25,
+                    this.camera.position.y - 0.12,
                     this.camera.position.z
-                ).add(this.camera.getOrthoDirection().mul(0.10)).add(
+                ).add(this.camera.getOrthoDirection().mul(0.07)).add(
                     this.camera.getDirection().mul(0.25)
                 ),
                 this.camera.getDirection()
             ));
         }
+        /*
         console.log('bullets: ', this.bulletSystem.bullets.length);
         console.log('inactive bullets: ',
             this.bulletSystem.bullets.filter(bullet => {
                 
                 return (bullet.hitTime + 200) < Date.now();
             }).length);
+            */
     }
 
     private drawLevel(): void {
