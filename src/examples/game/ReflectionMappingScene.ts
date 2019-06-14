@@ -10,8 +10,10 @@ import { BackgroundImage } from '../image/Effect';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
 import { GreenShaderProgram } from './GreenShaderProgram';
-import { Keyboard } from './Keyboard';
+import { Keyboard, Key } from './Keyboard';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
+import { MouseButton } from './MouseButton';
+import { Enemy } from './Enemy';
 
 class Bullet {
     public pos: Vector4f;
@@ -98,7 +100,7 @@ export class ReflectionMappingScene extends AbstractScene {
     private backgroundImage: BackgroundImage;
     private firstOff: number;
 
-    private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * 180);
+    private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * -90);
     private keyboard: Keyboard = new Keyboard();
     public preload(): Promise<any> {
         return Promise.all([
@@ -133,15 +135,30 @@ export class ReflectionMappingScene extends AbstractScene {
     private turnLeft: number = 0;
     private mouseDown: boolean = false;
 
-    public init(canvas: HTMLCanvasElement): void {
+
+    private  enemyList: Array<Enemy> = new Array<Enemy>();
+
+    public init(canvas: HTMLCanvasElement): void {  
+        this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 4.5)));
+        this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5)));
+        this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5), (): Vector4f => new Vector4f(
+            5.5 + Math.sin(Date.now() * 0.0005) * 2,
+            -0.5,
+            2.0 + Math.sin(Date.now() * 0.0014) * 0.5
+        )));
+
         canvas.addEventListener('mousedown', (event: MouseEvent) => {
-            this.mouseDown = true;
+            if (event.button === MouseButton.LEFT_BUTTON) {
+                this.mouseDown = true;
+            }
         });
         canvas.addEventListener('mouseup', (event: MouseEvent) => {
-            this.mouseDown = false;
+            if (event.button === MouseButton.LEFT_BUTTON) {
+                this.mouseDown = false;
+            }
         });
 
-        canvas.addEventListener('mousemove', (event: MouseEvent) => {
+        document.addEventListener('mousemove', (event: MouseEvent) => {
             if (document.pointerLockElement) {
                 if (event.movementX > 0) {
                     this.turnRight += event.movementX;
@@ -150,10 +167,8 @@ export class ReflectionMappingScene extends AbstractScene {
                 if (event.movementX < 0) {
                     this.turnLeft += -event.movementX;
                 }
-                console.log(event.movementX);
-                console.log(event.movementY);
             }
-        });
+        }, false);
 
         let xIdx = 1;
         let yIdx = 2;
@@ -294,23 +309,13 @@ export class ReflectionMappingScene extends AbstractScene {
         this.spriteShader.setProjectionMatrix(mv);
         this.spriteShader.setScale(1.0);
 
-        const enemyPos: Vector4f = new Vector4f(
-            5.5 + Math.sin(Date.now() * 0.0005) * 2,
-            -0.5,
-            2.0 + Math.sin(Date.now() * 0.0014) * 0.5
-        );
+        this.enemyList.forEach(x => x.update());
 
-        const enemyList: Array<Vector4f> = [
-            enemyPos,
-            new Vector4f(1.5, -0.5, 4.5),
-            new Vector4f(1.5, -0.5, 5.5)
-        ];
+        this.enemyList.forEach((enemy: Enemy) => {
 
-        enemyList.forEach((enemy: Vector4f) => {
-
-            const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.x)][Math.floor(enemy.z)]];
+            const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.position.x)][Math.floor(enemy.position.z)]];
             this.spriteShader.setColor(color);
-            this.spriteShader.setPos(enemy);
+            this.spriteShader.setPos(enemy.position);
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
         });
 
@@ -357,36 +362,36 @@ export class ReflectionMappingScene extends AbstractScene {
     }
 
     private InputAndCollision(): void {
-        let oldPos = new Vector4f(this.camera.position.x, this.camera.position.y, this.camera.position.z);
+        const oldPos: Vector4f = new Vector4f(this.camera.position.x, this.camera.position.y, this.camera.position.z);
 
         let moving: boolean = false;
 
-        if (this.keyboard.isDown(Keyboard.KEY_W)) {
+        if (this.keyboard.isDown(Key.W)) {
             this.camera.moveForward(0.04, 1.0);
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.KEY_S)) {
+        if (this.keyboard.isDown(Key.S)) {
             this.camera.moveBackward(0.04, 1.0);
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.LEFT) || this.turnLeft) {
+        if (this.keyboard.isDown(Key.LEFT) || this.turnLeft) {
             this.camera.turnLeft(this.turnLeft * 0.002, 1.0);
             this.turnLeft = 0;
         }
 
-        if (this.keyboard.isDown(Keyboard.KEY_A)) {
+        if (this.keyboard.isDown(Key.A)) {
             this.camera.moveLeft(0.04, 1.0);
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.KEY_D)) {
+        if (this.keyboard.isDown(Key.D)) {
             this.camera.moveRight(0.04, 1.0);
             moving = true;
         }
 
-        if (this.keyboard.isDown(Keyboard.RIGHT) || this.turnRight) {
+        if (this.keyboard.isDown(Key.RIGHT) || this.turnRight) {
             this.camera.turnRight(this.turnRight * 0.002, 1.0);
             this.turnRight = 0;
         }
@@ -440,7 +445,17 @@ export class ReflectionMappingScene extends AbstractScene {
                 if (!bullet.hitTime) {
                     const oldPos = bullet.pos;
                     bullet.advance();
-                    if (this.hit(bullet.pos)) {
+
+                    this.enemyList = this.enemyList.filter(enemy => {
+                        const hit = enemy.position.sub(bullet.pos).length() < 0.5;
+                        if (hit) {
+                        bullet.pos = oldPos;
+                        bullet.hitTime = Date.now();
+                        }
+                        return !hit;
+                    });
+
+                    if (!bullet.hitTime && this.hit(bullet.pos)) {
                         bullet.pos = oldPos;
                         bullet.hitTime = Date.now();
                     }
@@ -448,7 +463,9 @@ export class ReflectionMappingScene extends AbstractScene {
             });
         }
 
-        if ((this.keyboard.isDown(Keyboard.KEY_L) || this.mouseDown) && this.lastBullet + 200 < Date.now()) {
+
+
+        if ((this.keyboard.isDown(Key.L) || this.mouseDown) && this.lastBullet + 200 < Date.now()) {
             this.lastBullet = Date.now();
             this.bulletSystem.addBullet(new Bullet(
                 new Vector4f(

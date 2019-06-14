@@ -3,6 +3,7 @@ import { FullscreenUtils } from './core/fullscreen/FullscreenUtils';
 import { Logger } from './core/Logger';
 import * as RenderingContext from './core/RenderingContext';
 import { context as gl } from './core/RenderingContext';
+import { PointerLockUtils } from './core/fullscreen/PointerLockUtils';
 
 export class Window {
 
@@ -46,8 +47,10 @@ export class Window {
         canvas.addEventListener('click', (event: MouseEvent) => {
             event.preventDefault();
             // FullscreenUtils.enterFullscreen(canvas);
-            canvas.requestPointerLock();
+            PointerLockUtils.requestLock(canvas);
         });
+
+        this.logger.info('Pointer Lock:', PointerLockUtils.isAvailable());
 
         this.draw = this.draw.bind(this);
         this.canvas = canvas;

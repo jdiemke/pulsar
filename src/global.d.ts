@@ -7,11 +7,17 @@ interface Element {
     mozRequestFullScreen?(): void;
     webkitRequestFullScreen?(): void;
     msRequestFullscreen?(): void;
+
+    mozRequestPointerLock?(): void;
+    webkitRequestPointerLock?(): void;
 }
 
 interface Document {
     mozCancelFullScreen?(): void;
     webkitExitFullscreen?(): void;
+
+    mozExitPointerLock?(): void;
+    webkitExitPointerLock?(): void;
 }
 
 declare const BUILD_TIME: string;

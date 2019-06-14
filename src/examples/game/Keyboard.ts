@@ -1,15 +1,5 @@
 export class Keyboard {
 
-    public static LEFT: number = 37;
-    public static UP: number = 38;
-    public static RIGHT: number = 39;
-    public static DOWN: number = 40;
-    public static KEY_A: number = 65;
-    public static KEY_D: number = 68;
-    public static KEY_L: number = 76;
-    public static KEY_W: number = Keyboard.getCode('W');
-    public static KEY_S: number = Keyboard.getCode('S');
-
     public static getCode(key: string): number {
         return key.charCodeAt(0);
     }
@@ -24,7 +14,7 @@ export class Keyboard {
         window.addEventListener('keydown', (event: KeyboardEvent) => this.onKeyDown(event), false);
     }
 
-    public isDown(code: number): boolean {
+    public isDown(code: Key): boolean {
         return this.pressed[code];
     }
 
@@ -36,4 +26,16 @@ export class Keyboard {
         this.pressed[event.keyCode] = false;
     }
 
+}
+
+export enum Key {
+    LEFT = 37,
+    UP = 38,
+    RIGHT= 39,
+    DOWN = 40,
+    A = 65,
+    D = 68,
+    L= 76,
+    W = Keyboard.getCode('W'),
+    S = Keyboard.getCode('S')
 }
