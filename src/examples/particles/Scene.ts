@@ -1,17 +1,15 @@
 import { mat4 } from 'gl-matrix';
 import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
-import { GreenShaderProgram } from './GreenShaderProgram';
-import { Face } from '../../model/face';
-import { Mesh } from '../../model/mesh';
-import { WavefrontLoader } from '../../model/WavefrontLoader';
+import { Texture } from '../../core/texture/Texture';
+import { TextureUnit } from '../../core/texture/TextureUnit';
+import { TextureUtils } from '../../core/utils/TextureUtils';
+import { ElementBufferObject } from '../../ElementBufferObject';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
-import { Vector4f } from './Vector4f';
-import { Texture, TextureUnit } from '../../core/texture/Texture';
-import { TextureUtils } from '../../core/utils/TextureUtils';
 import { BackgroundImage } from '../image/Effect';
-import { ElementBufferObject } from '../../ElementBufferObject';
+import { GreenShaderProgram } from './GreenShaderProgram';
+import { Vector4f } from './Vector4f';
 
 export class Scene extends AbstractScene {
 
@@ -21,12 +19,10 @@ export class Scene extends AbstractScene {
     private colorShaderProgram: GreenShaderProgram;
     private array: Array<number> = new Array<number>();
     private array2: Array<number> = new Array<number>();
-    private texture: Texture;
     private texture2: Texture;
     private background: BackgroundImage;
     private vba: VertexArrayObject;
     private posArray: VertexBufferObject;
-    private ibo: ElementBufferObject;
     private particles: Array<Vector4f> = new Array<Vector4f>(100);
     private floatArray = new Float32Array(100 * 3);
 
@@ -36,7 +32,6 @@ export class Scene extends AbstractScene {
                 this.colorShaderProgram = shaderProgram;
             }),
         TextureUtils.load(require('./../../assets/textures/metal.png')).then((texture: Texture) => {
-            this.texture = texture;
         }),
         TextureUtils.load(require('./../../assets/textures/ball.png')).then((texture: Texture) => {
             this.texture2 = texture;
@@ -48,7 +43,7 @@ export class Scene extends AbstractScene {
     }
 
     public init(): void {
-        this.particles = this.particles.fill(null).map(x => new Vector4f(0, 0, 0, 1));
+        this.particles = this.particles.fill(null).map(() => new Vector4f(0, 0, 0, 1));
 
         const array: Array<number> = this.array;
         array.push(-0.5, 0.5, 0.0, 0.0, 0.0);
@@ -64,7 +59,6 @@ export class Scene extends AbstractScene {
         const vba: VertexArrayObject = new VertexArrayObject();
         this.vba = vba;
         const ibo: ElementBufferObject = new ElementBufferObject(this.array2);
-        this.ibo = ibo;
         this.posArray = new VertexBufferObject(null, 100 * 3 * 4, gl.DYNAMIC_DRAW);
 
         const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
@@ -82,7 +76,7 @@ export class Scene extends AbstractScene {
         gl.cullFace(gl.BACK);
     }
 
-    public updateParticles(mv: mat4): void {
+    public updateParticles(): void {
         for (let i = 0; i < 10; i++) {
             for (let j = 0; j < 10; j++) {
 
@@ -136,7 +130,7 @@ export class Scene extends AbstractScene {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
 
         const mv: mat4 = this.computeModelViewMatrix();
-        this.updateParticles(mv);
+        this.updateParticles();
 
         this.colorShaderProgram.setProjectionMatrix(mv);
         gl.drawElementsInstanced(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0, 100);

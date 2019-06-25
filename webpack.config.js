@@ -10,7 +10,8 @@ module.exports = {
         'image': './src/examples/image/Application.ts',
         'torus-knot': './src/examples/torus-knot/Application.ts',
         'particles': './src/examples/particles/Application.ts',
-        'game': './src/examples/game/Application.ts'
+        'game': './src/examples/game/Application.ts',
+        'render-to-texture': './src/examples/render-to-texture/Application.ts',
     },
     output: {
         filename: '[name].bundle.js',
@@ -81,5 +82,11 @@ module.exports = {
             chunks: ['game'],
             filename: 'game.html'
         }),
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['render-to-texture'],
+            filename: 'render-to-texture.html'
+        }),
+    
     ]
 }

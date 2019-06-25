@@ -1,5 +1,6 @@
 import { mat4 } from 'gl-matrix';
-import { Texture, TextureUnit } from '../../core/texture/Texture';
+import { Texture } from '../../core/texture/Texture';
+import { TextureUnit } from "../../core/texture/TextureUnit";
 import { TextureUtils } from '../../core/utils/TextureUtils';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';

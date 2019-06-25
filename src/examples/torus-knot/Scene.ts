@@ -1,17 +1,15 @@
 import { mat4 } from 'gl-matrix';
 import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
-import { GreenShaderProgram } from './GreenShaderProgram';
-import { Face } from '../../model/face';
-import { Mesh } from '../../model/mesh';
-import { WavefrontLoader } from '../../model/WavefrontLoader';
+import { Texture } from '../../core/texture/Texture';
+import { TextureUnit } from '../../core/texture/TextureUnit';
+import { TextureUtils } from '../../core/utils/TextureUtils';
+import { ElementBufferObject } from '../../ElementBufferObject';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
-import { Vector4f } from './Vector4f';
-import { Texture, TextureUnit } from '../../core/texture/Texture';
-import { TextureUtils } from '../../core/utils/TextureUtils';
 import { BackgroundImage } from '../image/Effect';
-import { ElementBufferObject } from '../../ElementBufferObject';
+import { GreenShaderProgram } from './GreenShaderProgram';
+import { Vector4f } from './Vector4f';
 
 export class Scene extends AbstractScene {
 
@@ -25,7 +23,6 @@ export class Scene extends AbstractScene {
     private texture2: Texture;
     private background: BackgroundImage;
     private vba: VertexArrayObject;
-    private ibo: ElementBufferObject;
 
     public preload(): Promise<any> {
         return Promise.all([GreenShaderProgram.create().then(
@@ -135,8 +132,6 @@ export class Scene extends AbstractScene {
         const array: Array<number> = this.array;
 
         const points: Array<Vector4f> = [];
-        const normals: Array<Vector4f> = [];
-        const tex: Array<Vector4f> = [];
 
         let STEPS = 160;
         let STEPS2 = 16;
@@ -195,7 +190,6 @@ export class Scene extends AbstractScene {
         const vba: VertexArrayObject = new VertexArrayObject();
         this.vba = vba;
         const ibo: ElementBufferObject = new ElementBufferObject(array2);
-        this.ibo = ibo;
 
         const vertex: number = this.colorShaderProgram.getAttributeLocation('vertex');
         const color: number = this.colorShaderProgram.getAttributeLocation('vcolor');

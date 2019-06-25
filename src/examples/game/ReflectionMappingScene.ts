@@ -1,7 +1,8 @@
 import { mat4 } from 'gl-matrix';
 import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
-import { Texture, TextureUnit } from '../../core/texture/Texture';
+import { Texture } from '../../core/texture/Texture';
+import { TextureUnit } from '../../core/texture/TextureUnit';
 import { TextureUtils } from '../../core/utils/TextureUtils';
 import { ElementBufferObject } from '../../ElementBufferObject';
 import { VertexBufferObject } from '../../VertexBufferObject';
@@ -9,11 +10,11 @@ import { VertexArrayObject } from '../../VertextArrayObject';
 import { BackgroundImage } from '../image/Effect';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
-import { GreenShaderProgram } from './GreenShaderProgram';
-import { Keyboard, Key } from './Keyboard';
-import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
-import { MouseButton } from './MouseButton';
 import { Enemy } from './Enemy';
+import { GreenShaderProgram } from './GreenShaderProgram';
+import { Key, Keyboard } from './Keyboard';
+import { MouseButton } from './MouseButton';
+import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
 
 class Bullet {
     public pos: Vector4f;
@@ -102,6 +103,12 @@ export class ReflectionMappingScene extends AbstractScene {
 
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * -90);
     private keyboard: Keyboard = new Keyboard();
+
+    private turnRight: number = 0;
+    private turnLeft: number = 0;
+    private mouseDown: boolean = false;
+
+    private  enemyList: Array<Enemy> = new Array<Enemy>();
     public preload(): Promise<any> {
         return Promise.all([
             GreenShaderProgram.create().then(
@@ -131,14 +138,7 @@ export class ReflectionMappingScene extends AbstractScene {
         ]);
     }
 
-    private turnRight: number = 0;
-    private turnLeft: number = 0;
-    private mouseDown: boolean = false;
-
-
-    private  enemyList: Array<Enemy> = new Array<Enemy>();
-
-    public init(canvas: HTMLCanvasElement): void {  
+    public init(canvas: HTMLCanvasElement): void {
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 4.5)));
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5)));
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5), (): Vector4f => new Vector4f(
@@ -463,8 +463,6 @@ export class ReflectionMappingScene extends AbstractScene {
             });
         }
 
-
-
         if ((this.keyboard.isDown(Key.L) || this.mouseDown) && this.lastBullet + 200 < Date.now()) {
             this.lastBullet = Date.now();
             this.bulletSystem.addBullet(new Bullet(
@@ -482,7 +480,7 @@ export class ReflectionMappingScene extends AbstractScene {
         console.log('bullets: ', this.bulletSystem.bullets.length);
         console.log('inactive bullets: ',
             this.bulletSystem.bullets.filter(bullet => {
-                
+
                 return (bullet.hitTime + 200) < Date.now();
             }).length);
             */

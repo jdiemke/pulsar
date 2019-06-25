@@ -1,42 +1,54 @@
 import { context as gl } from './../RenderingContext';
+import { TextureFilterMode } from './TextureFilterMode';
+import { TextureUnit } from './TextureUnit';
+import { TextureWrapMode } from './TextureWrapMode';
 
 export class Texture {
 
-    private texture: WebGLTexture;
+    private texture: WebGLTexture = null;
 
-    constructor() {
+    public constructor() {
         this.texture = gl.createTexture();
     }
 
+    public getWebGLTexture(): WebGLTexture {
+        return this.texture;
+    }
+
     public setHTMLImageElementData(image: HTMLImageElement): void {
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        this.bindAndExecute(() => {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        });
     }
 
     public setTextureMinFilter(type: TextureFilterMode): void {
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, type);
+        this.bindAndExecute(() => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, type);
+        });
     }
 
     public setTextureMagFilter(type: TextureFilterMode): void {
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, type);
+        this.bindAndExecute(() => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, type);
+        });
     }
 
-    // TODO: typesafe enums
     public setTextureWrapS(type: TextureWrapMode): void {
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, type);
+        this.bindAndExecute(() => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, type);
+        });
     }
 
     public setTextureWrapT(type: TextureWrapMode): void {
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, type);
+        this.bindAndExecute(() => {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, type);
+        });
     }
 
     public setupEmptyTexture(width: number, height: number): void {
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        this.bindAndExecute(() => {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        });
     }
 
     public blocky(): void {
@@ -51,19 +63,13 @@ export class Texture {
         gl.bindTexture(gl.TEXTURE_2D, this.texture);
     }
 
-}
+    // see: https://books.google.de/books?id=0bTMBQAAQBAJ&pg=PA591&lpg=PA591&dq=%22gl.getParameter(gl.TEXTURE_BINDING_2D);%22&source=bl&ots=byDv_PZaTG&sig=ACfU3U21KvUv3asbADMrLc3UIX9u1ggiTQ&hl=de&sa=X&ved=2ahUKEwiXt4j6noTjAhWFzKQKHXc6CeUQ6AEwBXoECAkQAQ#v=onepage&q=%22gl.getParameter(gl.TEXTURE_BINDING_2D)%3B%22&f=false
+    private bindAndExecute(arrowFunction: () => void): void {
+        const boundTexture: WebGLTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
 
-export enum TextureUnit {
-    UNIT_0 = WebGL2RenderingContext.TEXTURE0,
-    UNIT_1 = WebGL2RenderingContext.TEXTURE1
-}
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        arrowFunction();
+        gl.bindTexture(gl.TEXTURE_2D, boundTexture);
+    }
 
-export enum TextureFilterMode {
-    NEAREST = WebGL2RenderingContext.NEAREST,
-    LINEAR = WebGL2RenderingContext.LINEAR,
-}
-
-export enum TextureWrapMode {
-    CLAMP_TO_EDGE = WebGL2RenderingContext.CLAMP_TO_EDGE,
-    REPEAT = WebGL2RenderingContext.REPEAT,
 }

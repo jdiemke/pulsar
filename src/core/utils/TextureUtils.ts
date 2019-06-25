@@ -1,4 +1,6 @@
-import { Texture, TextureFilterMode, TextureWrapMode } from '../texture/Texture';
+import { Texture } from '../texture/Texture';
+import { TextureFilterMode } from '../texture/TextureFilterMode';
+import { TextureWrapMode } from '../texture/TextureWrapMode';
 
 export class TextureUtils {
 
