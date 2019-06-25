@@ -1,4 +1,4 @@
-import { Texture } from '../texture/Texture';
+import { Texture, TextureFilterMode, TextureWrapMode } from '../texture/Texture';
 
 export class TextureUtils {
 
@@ -7,7 +7,19 @@ export class TextureUtils {
             const image: HTMLImageElement = new Image();
             image.src = filename;
             image.addEventListener('load', (ev: Event) => resolve(image));
-        }).then((img: HTMLImageElement) => new Texture(img));
+        }).then((img: HTMLImageElement) => {
+            const texture: Texture = new Texture();
+
+            texture.setHTMLImageElementData(img);
+
+            texture.setTextureMagFilter(TextureFilterMode.LINEAR);
+            texture.setTextureMinFilter(TextureFilterMode.LINEAR);
+
+            texture.setTextureWrapS(TextureWrapMode.REPEAT);
+            texture.setTextureWrapT(TextureWrapMode.REPEAT);
+
+            return texture;
+        });
     }
 
 }
