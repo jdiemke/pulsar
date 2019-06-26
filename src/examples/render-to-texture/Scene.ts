@@ -1,19 +1,23 @@
+import { mat4 } from 'gl-matrix';
 import { AbstractScene } from '../../AbstractScene';
 import { context as gl } from '../../core/RenderingContext';
 import { Framebuffer } from '../../core/texture/Framebuffer';
 import { Texture } from '../../core/texture/Texture';
 import { TextureFilterMode } from '../../core/texture/TextureFilterMode';
 import { TextureWrapMode } from '../../core/texture/TextureWrapMode';
-import { mat4 } from 'gl-matrix';
-import { VertexBufferObject } from '../../VertexBufferObject';
-import { TextureMappingShaderProgram } from '../../shader-programs/texture-mapping/TextureMappingShaderProgram';
 import { WavefrontLoader } from '../../model/WavefrontLoader';
+import { TextureMappingShaderProgram } from '../../shader-programs/texture-mapping/TextureMappingShaderProgram';
+import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
 
+/**
+ * https://webgl2fundamentals.org/webgl/lessons/webgl-render-to-texture.html
+ */
 export class Scene extends AbstractScene {
 
     private offscreenFramebuffer: Framebuffer;
     private offscreenTexture: Texture;
+    private vao: VertexArrayObject;
 
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
@@ -27,10 +31,11 @@ export class Scene extends AbstractScene {
             TextureMappingShaderProgram.create().then((shaderProgram: TextureMappingShaderProgram) => {
                 this.colorShaderProgram = shaderProgram;
             }),
-            WavefrontLoader.loadIntoVboTex(require('./../../assets/models/susanna.obj')).then((vbo) => {
-                this.vbo = vbo.vbo;
-                this.length = vbo.length;
-            })
+            WavefrontLoader.loadIntoVboTex(require('./../../assets/models/susanna.obj'))
+                .then((vbo: { vbo: VertexBufferObject, length: number }) => {
+                    this.vbo = vbo.vbo;
+                    this.length = vbo.length;
+                })
         ]);
     }
 
@@ -59,7 +64,7 @@ export class Scene extends AbstractScene {
         this.colorShaderProgram.use();
         this.colorShaderProgram.setModelViewMatrix(this.computeProjectionMatrix());
 
-        vao.bind();
+        this.vao = vao;
     }
 
     public draw(): void {
@@ -67,12 +72,18 @@ export class Scene extends AbstractScene {
         this.renderOnscreenScene();
     }
 
+    /**
+     * clear texture
+     */
     private renderOffscreenScene(): void {
         gl.viewport(0, 0, 640, 360);
         gl.clearColor(1, 0, 1, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
+    /**
+     * render obj with cleared texture
+     */
     private renderOnscreenScene(): void {
         gl.viewport(0, 0, 640, 360);
         gl.clearColor(0, 1, 0, 1);
@@ -80,6 +91,7 @@ export class Scene extends AbstractScene {
 
         this.colorShaderProgram.setProjectionMatrix(this.computeModelViewMatrix());
         this.offscreenTexture.bind();
+        this.vao.bind();
         this.vbo.draw(this.length);
     }
 
@@ -90,9 +102,7 @@ export class Scene extends AbstractScene {
     private computeModelViewMatrix(): mat4 {
         mat4.identity(this.modelViewMatrix);
         mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [0, -0.9, -4]);
-        //mat4.rotateX(this.modelViewMatrix, this.modelViewMatrix, Date.now() * 0.0008);
         return mat4.rotateY(this.modelViewMatrix, this.modelViewMatrix, Date.now() * 0.0008);
-
     }
 
 }
