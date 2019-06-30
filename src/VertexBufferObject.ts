@@ -15,7 +15,7 @@ export class VertexBufferObject {
         }
     }
 
-    public update(bufferData: Float32Array) {
+    public update(bufferData: Float32Array): void {
         this.bindAndExecute(() => {
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, bufferData)
         });
