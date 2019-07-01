@@ -1,9 +1,9 @@
 import { AbstractScene } from './AbstractScene';
 import { FullscreenUtils } from './core/fullscreen/FullscreenUtils';
+import { PointerLockUtils } from './core/fullscreen/PointerLockUtils';
 import { Logger } from './core/Logger';
 import * as RenderingContext from './core/RenderingContext';
 import { context as gl } from './core/RenderingContext';
-import { PointerLockUtils } from './core/fullscreen/PointerLockUtils';
 
 export class Window {
 

@@ -24,7 +24,7 @@ export class GreenShaderProgram extends ShaderProgram {
         });
     }
 
-    private static logger: Logger = new Logger(GreenShaderProgram.name);
+    private static logger: Logger = new Logger('GreenShaderProgram');
 
     private modelViewMatrixLocation: WebGLUniformLocation;
     private projectionMatrixLocation: WebGLUniformLocation;

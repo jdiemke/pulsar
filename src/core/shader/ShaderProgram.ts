@@ -33,6 +33,10 @@ export class ShaderProgram {
         return gl.getAttribLocation(this.program, id);
     }
 
+    public getUnifromLocation(id: string): WebGLUniformLocation {
+        return gl.getUniformLocation(this.program, id);
+    }
+
     public use(): void {
         gl.useProgram(this.program);
     }
