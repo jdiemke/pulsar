@@ -1,5 +1,5 @@
 # Pulsar
-[![Language](https://img.shields.io/badge/language-TypeScript%203.5.1-blue.svg)](https://www.typescriptlang.org/)
+[![Language](https://img.shields.io/badge/TypeScript-3.5.2-blue.svg)](https://www.typescriptlang.org/)
 [![Build Status](https://travis-ci.org/jdiemke/pulsar.svg?branch=master)](https://travis-ci.org/jdiemke/pulsar)
 [![GitHub stars](https://img.shields.io/github/stars/jdiemke/pulsar.svg)](https://github.com/jdiemke/pulsar/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/jdiemke/pulsar.svg)](https://github.com/jdiemke/pulsar/network)
