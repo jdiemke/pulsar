@@ -19,6 +19,8 @@ A WebGL 2.0 Playground
 - [Particles](https://jdiemke.github.io/pulsar/particles.html)
 - [Game](https://jdiemke.github.io/pulsar/game.html)
 - [Render to Texture](https://jdiemke.github.io/pulsar/render-to-texture.html)
+- - [Text](https://jdiemke.github.io/pulsar/text.html)
+
 
 ## References
 
