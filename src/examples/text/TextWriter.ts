@@ -7,6 +7,7 @@ import { VertexArrayObject } from '../../VertextArrayObject';
 import { TextureFilterMode } from '../../core/texture/TextureFilterMode';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
+import { TextureUnit } from '../../core/texture/TextureUnit';
 
 export class TextWriter {
 
@@ -16,8 +17,9 @@ export class TextWriter {
 
     private static MAX_CHARS: number = 200;
     private static MAX_VERTICES: number = 6 * TextWriter.MAX_CHARS;
-    public currentColor: Array<number> = [0, 1, 0, 1];
-    public currentScale: number = 2;
+    private currentColor: Array<number> = [0, 1, 0, 1];
+
+    private currentScale: number = 2;
 
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
@@ -29,6 +31,20 @@ export class TextWriter {
     private ColorVbo: VertexBufferObject;
     private array: Array<number> = [];
     private color: Array<number> = [];
+
+    public getCurrentColor(): Array<number> {
+        return this.currentColor;
+    }
+    public setCurrentColor(value: Array<number>): void {
+        this.currentColor = value;
+    }
+
+    public getCurrentScale(): number {
+        return this.currentScale;
+    }
+    public setCurrentScale(value: number): void {
+        this.currentScale = value;
+    }
 
     public addText(x: number, y: number, text: string): void {
         let xpos: number = x;
@@ -93,7 +109,7 @@ export class TextWriter {
     public draw(): void {
         this.vba.bind();
         this.shader.use();
-        this.texture.bind();
+        this.texture.bind(TextureUnit.UNIT_0);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
 

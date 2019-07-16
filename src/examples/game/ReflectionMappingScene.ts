@@ -8,6 +8,7 @@ import { ElementBufferObject } from '../../ElementBufferObject';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
 import { BackgroundImage } from '../image/Effect';
+import { TextWriter } from '../text/TextWriter';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
 import { Enemy } from './Enemy';
@@ -57,6 +58,7 @@ export class ReflectionMappingScene extends AbstractScene {
     private vba: VertexArrayObject;
 
     private bulletSystem: BulletSystem = new BulletSystem();
+    private textWriter: TextWriter;
     private texture: Texture;
     private bulletTexture: Texture;
     private moveAnim: number = 0.0;
@@ -108,7 +110,7 @@ export class ReflectionMappingScene extends AbstractScene {
     private turnLeft: number = 0;
     private mouseDown: boolean = false;
 
-    private  enemyList: Array<Enemy> = new Array<Enemy>();
+    private enemyList: Array<Enemy> = new Array<Enemy>();
     public preload(): Promise<any> {
         return Promise.all([
             GreenShaderProgram.create().then(
@@ -134,7 +136,10 @@ export class ReflectionMappingScene extends AbstractScene {
             TextureUtils.load(require('./../../assets/textures/bullet.png')).then((texture: Texture) => {
                 texture.blocky();
                 this.bulletTexture = texture;
-            })
+            }),
+            TextWriter.create().then(
+                (t: TextWriter) => this.textWriter = t
+            )
         ]);
     }
 
@@ -286,6 +291,28 @@ export class ReflectionMappingScene extends AbstractScene {
         this.drawLevel();
         this.drawEnemies();
         this.drawWeapon();
+
+        this.drawHeadUpDisplay();
+    }
+
+    private drawHeadUpDisplay(): void {
+        gl.disable(gl.CULL_FACE);
+
+        this.textWriter.begin();
+
+        this.textWriter.setCurrentColor([1, 0.7, 0.7, 1]);
+        this.textWriter.setCurrentScale(2);
+        this.textWriter.addText(8, 8, 'FPS: 60');
+
+        this.textWriter.setCurrentColor([1, 1, 1, 1]);
+        this.textWriter.setCurrentScale(4);
+        this.textWriter.addText(8, 320, '100+');
+
+        this.textWriter.end();
+
+        this.textWriter.draw();
+
+        gl.enable(gl.CULL_FACE);
     }
 
     /**
@@ -449,8 +476,8 @@ export class ReflectionMappingScene extends AbstractScene {
                     this.enemyList = this.enemyList.filter(enemy => {
                         const hit = enemy.position.sub(bullet.pos).length() < 0.5;
                         if (hit) {
-                        bullet.pos = oldPos;
-                        bullet.hitTime = Date.now();
+                            bullet.pos = oldPos;
+                            bullet.hitTime = Date.now();
                         }
                         return !hit;
                     });
