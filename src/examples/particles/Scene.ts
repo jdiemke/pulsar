@@ -77,8 +77,8 @@ export class Scene extends AbstractScene {
     }
 
     public updateParticles(): void {
-        for (let i = 0; i < 10; i++) {
-            for (let j = 0; j < 10; j++) {
+        for (let i: number = 0; i < 10; i++) {
+            for (let j: number = 0; j < 10; j++) {
 
                 let x = (i - (9 / 2)) * 0.5;
                 let y = (j - (9 / 2)) * 0.5;

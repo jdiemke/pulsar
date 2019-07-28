@@ -117,7 +117,8 @@ export class Scene extends AbstractScene {
 
         this.colorShaderProgram.use();
 
-        gl.uniformMatrix4fv(this.colorShaderProgram.getUnifromLocation('projectionMatrix'), false, this.computeProjectionMatrix());
+        gl.uniformMatrix4fv(
+            this.colorShaderProgram.getUnifromLocation('projectionMatrix'), false, this.computeProjectionMatrix());
 
         this.vao = vao;
 
@@ -138,10 +139,6 @@ export class Scene extends AbstractScene {
         vba.bindVertexBufferToAttribute(vbo, vertex, 3, 3, 0);
         this.fullscreenQuadVAO = vba;
         this.fullscreenVbo = vbo;
-
-
-
-
     }
 
     public draw(): void {

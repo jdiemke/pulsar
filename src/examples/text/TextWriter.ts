@@ -5,14 +5,14 @@ import { TextureUtils } from '../../core/utils/TextureUtils';
 import { VertexArrayObject } from '../../VertextArrayObject';
 
 import { TextureFilterMode } from '../../core/texture/TextureFilterMode';
+import { TextureUnit } from '../../core/texture/TextureUnit';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
-import { TextureUnit } from '../../core/texture/TextureUnit';
 
 export class TextWriter {
 
-    public static create(): Promise<TextWriter> {
-        return new TextWriter().init();
+    public static create(font: string, xfonts: number, yFonts: number, w: number, h: number, mapping: string): Promise<TextWriter> {
+        return new TextWriter().init(font, xfonts, yFonts, w, h, mapping);
     }
 
     private static MAX_CHARS: number = 200;
@@ -20,7 +20,10 @@ export class TextWriter {
     private currentColor: Array<number> = [0, 1, 0, 1];
 
     private currentScale: number = 2;
-
+    private xfonts: number;
+    private yfonts: number;
+    private w: number;
+    private h: number;
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
     private shader: TextureMappingShaderProgram;
@@ -31,6 +34,8 @@ export class TextWriter {
     private ColorVbo: VertexBufferObject;
     private array: Array<number> = [];
     private color: Array<number> = [];
+    private charToIndex: Map<number, number>;
+
 
     public getCurrentColor(): Array<number> {
         return this.currentColor;
@@ -54,26 +59,26 @@ export class TextWriter {
             const ascii: number = text.charCodeAt(i);
             if (ascii === '\n'.charCodeAt(0)) {
                 xpos = x;
-                ypos += 8 * scale;
+                ypos += this.h * scale;
                 continue;
             }
 
-            const char: number = ascii - ' '.charCodeAt(0);
-            const charx: number = Math.floor(char % 32);
-            const chary: number = Math.floor(char / 32);
-            const height: number = 1.0 / 2.0;
-            const width: number = 1.0 / 32.0;
+            const char: number =  this.charToIndex.has(ascii) ? this.charToIndex.get(ascii) : 0;
+            const charx: number = Math.floor(char % this.xfonts);
+            const chary: number = Math.floor(char / this.xfonts);
+            const height: number = 1.0 / this.yfonts;
+            const width: number = 1.0 / this.xfonts;
 
             // TODO: use instanced rendering
             // define vertices once, add pos, tex offset and color as buffers
             this.array.push(
                 xpos + 0, 0 + ypos, charx * width + 0, 0 + chary * height,
-                xpos + 8 * scale, 0 + ypos, charx * width + width, 0 + chary * height,
-                xpos + 0, 8 * scale + ypos, charx * width + 0, height + chary * height,
+                xpos + this.w * scale, 0 + ypos, charx * width + width, 0 + chary * height,
+                xpos + 0, this.h * scale + ypos, charx * width + 0, height + chary * height,
 
-                xpos + 8 * scale, 0 + ypos, charx * width + width, 0 + chary * height,
-                xpos + 8 * scale, 8 * scale + ypos, charx * width + width, height + chary * height,
-                xpos + 0, 8 * scale + ypos, charx * width + 0, height + chary * height
+                xpos + this.w * scale, 0 + ypos, charx * width + width, 0 + chary * height,
+                xpos + this.w * scale, this.h * scale + ypos, charx * width + width, height + chary * height,
+                xpos + 0, this.h * scale + ypos, charx * width + 0, height + chary * height
             );
             this.color.push(...this.currentColor);
             this.color.push(...this.currentColor);
@@ -82,7 +87,7 @@ export class TextWriter {
             this.color.push(...this.currentColor);
             this.color.push(...this.currentColor);
 
-            xpos += 8 * scale;
+            xpos += this.w * scale;
             this.numCharacters++;
         }
     }
@@ -146,14 +151,27 @@ export class TextWriter {
         this.vba = vba;
     }
 
-    private init(): Promise<TextWriter> {
+    private addCharInex(char: number, index: number): void {
+        this.charToIndex.set(char, index);
+    }
+
+    private init(font: string, xfonts: number, yFonts: number, w: number, h: number, fonts: string): Promise<TextWriter> {
+        this.charToIndex = new Map<number, number>();
+
+        for (let x: number = 0; x < fonts.length; x++) {
+            this.addCharInex(fonts.charCodeAt(x), x);
+        }
+        this.xfonts = xfonts;
+        this.yfonts = yFonts;
+        this.w = w;
+        this.h = h;
         return Promise.all([
             TextureMappingShaderProgram.create().then(
                 (shader: TextureMappingShaderProgram) => {
                     this.shader = shader;
                 }
             ),
-            TextureUtils.load(require('./font.png')).then(
+            TextureUtils.load(font).then(
                 (texture: Texture) => this.texture = texture
             )
         ]).then(() => {

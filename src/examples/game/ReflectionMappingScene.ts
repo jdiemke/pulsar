@@ -137,7 +137,7 @@ export class ReflectionMappingScene extends AbstractScene {
                 texture.blocky();
                 this.bulletTexture = texture;
             }),
-            TextWriter.create().then(
+            TextWriter.create(require('./../text/font.png'), 32, 2, 8, 8,'').then(
                 (t: TextWriter) => this.textWriter = t
             )
         ]);
