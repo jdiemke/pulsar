@@ -116,10 +116,13 @@ export class TextWriter {
         this.shader.use();
         this.texture.bind(TextureUnit.UNIT_0);
         gl.enable(gl.BLEND);
+        gl.disable(gl.CULL_FACE);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
 
         gl.drawArrays(gl.TRIANGLES, 0, Math.min(this.numCharacters * 6, TextWriter.MAX_VERTICES));
-
+        
+        gl.enable(gl.CULL_FACE);
+        gl.disable(gl.BLEND);
     }
 
     private initVBOs(): void {

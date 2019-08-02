@@ -137,7 +137,11 @@ export class ReflectionMappingScene extends AbstractScene {
                 texture.blocky();
                 this.bulletTexture = texture;
             }),
-            TextWriter.create(require('./../text/font.png'), 32, 2, 8, 8, ' !\'><@+\'()@+,-./0123456789:; = ? ABCDEFGHIJKLMNOPQRSTUVWXYZ').then(
+            TextWriter.create(
+                require('./../text/font.png'),
+                32, 2, 8, 8,
+                ' !\'><@+\'()@+,-./0123456789:; = ? ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            ).then(
                 (t: TextWriter) => this.textWriter = t
             )
         ]);
@@ -295,14 +299,18 @@ export class ReflectionMappingScene extends AbstractScene {
         this.drawHeadUpDisplay();
     }
 
+    private frameCounter: number = 0;
+    private lastTime: number = null;
+    private fps: number = 0;
+
     private drawHeadUpDisplay(): void {
-        gl.disable(gl.CULL_FACE);
+        this.computeFPS();
 
         this.textWriter.begin();
 
-        this.textWriter.setCurrentColor([1, 0.7, 0.7, 1]);
+        this.textWriter.setCurrentColor([1, 0.0, 0.0, 1]);
         this.textWriter.setCurrentScale(2);
-        this.textWriter.addText(8, 8, 'FPS: 60');
+        this.textWriter.addText(8, 8, 'FPS: ' + this.fps);
 
         this.textWriter.setCurrentColor([1, 1, 1, 1]);
         this.textWriter.setCurrentScale(4);
@@ -311,8 +319,23 @@ export class ReflectionMappingScene extends AbstractScene {
         this.textWriter.end();
 
         this.textWriter.draw();
+    }
 
-        gl.enable(gl.CULL_FACE);
+    // TODO: move into separate class
+    private computeFPS(): void {
+        const currentTime: number = Date.now();
+
+        if (this.lastTime === null) {
+            this.lastTime = currentTime;
+        }
+
+        if (currentTime - this.lastTime > 1000) {
+            this.fps = this.frameCounter;
+            this.frameCounter = 0;
+            this.lastTime = currentTime;
+        }
+
+        this.frameCounter++;
     }
 
     /**
