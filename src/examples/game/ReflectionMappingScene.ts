@@ -327,9 +327,7 @@ export class ReflectionMappingScene extends AbstractScene {
 
         if (this.lastTime === null) {
             this.lastTime = currentTime;
-        }
-
-        if (currentTime - this.lastTime > 1000) {
+        } else if (currentTime - this.lastTime > 1000) {
             this.fps = this.frameCounter;
             this.frameCounter = 0;
             this.lastTime = currentTime;
