@@ -33,12 +33,12 @@ export class SphereMappingShaderProgram extends ShaderProgram {
         this.setupUniforms();
     }
 
-    public setModelViewMatrix(modelViewMatrix: mat4): void {
-        gl.uniformMatrix4fv(this.projectionMatrixLocation, false, modelViewMatrix);
+    public setProjectionMatrix(projectionMatrix: mat4): void {
+        gl.uniformMatrix4fv(this.projectionMatrixLocation, false, projectionMatrix);
     }
 
-    public setProjectionMatrix(projectionMatrix: mat4): void {
-        gl.uniformMatrix4fv(this.modelViewMatrixLocation, false, projectionMatrix);
+    public setModelViewMatrix(modelViewMatrix: mat4): void {
+        gl.uniformMatrix4fv(this.modelViewMatrixLocation, false, modelViewMatrix);
     }
 
     private setupUniforms(): void {
