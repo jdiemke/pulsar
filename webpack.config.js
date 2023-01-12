@@ -28,19 +28,8 @@ module.exports = {
                 use: 'ts-loader'
             },
             {
-                test: /\.html$/,
-                use: 'html-loader'
-            },
-            {
                 test: /\.(vs|fs|obj|jpg|frag|vert|png)$/,
-                use: [{
-                    loader: 'file-loader',
-                    options: {
-                        name(file) {
-                            return '[path][name].[ext]';
-                        }
-                    }
-                }],
+                type: 'asset/resource'
             }
         ]
     },
@@ -92,7 +81,6 @@ module.exports = {
             template: './src/index.html',
             chunks: ['text'],
             filename: 'text.html'
-        }),
-    
+        })
     ]
 }
