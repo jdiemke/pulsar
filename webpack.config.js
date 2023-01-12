@@ -16,7 +16,8 @@ module.exports = {
     },
     output: {
         filename: '[name].bundle.js',
-        path: path.resolve(__dirname, './dist')
+        path: path.resolve(__dirname, './dist'),
+        clean: true
     },
     resolve: {
         extensions: ['.ts', '.js']
@@ -30,6 +31,10 @@ module.exports = {
             {
                 test: /\.(vs|fs|obj|jpg|frag|vert|png)$/,
                 type: 'asset/resource'
+            },
+            {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader'],
             }
         ]
     },
