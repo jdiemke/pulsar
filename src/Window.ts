@@ -47,7 +47,7 @@ export class Window {
 
         canvas.addEventListener('click', (event: MouseEvent) => {
             event.preventDefault();
-            // FullscreenUtils.enterFullscreen(canvas);
+            FullscreenUtils.enterFullscreen(canvas);
             PointerLockUtils.requestLock(canvas);
         });
 
