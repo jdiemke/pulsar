@@ -131,6 +131,8 @@ export class GameEngine extends AbstractScene {
             }),
             TextureUtils.load(require('./../../assets/textures/doom_tiles.png')).then((texture: Texture) => {
                 texture.blocky(); // remove this hack
+                texture.setTextureWrapS(TextureWrapMode.CLAMP_TO_EDGE);
+                texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE)
                 this.texture = texture;
             }),
             BackgroundImage.create(require('./../../assets/textures/plasma-gun.png'))
@@ -194,22 +196,22 @@ export class GameEngine extends AbstractScene {
             }
         }, false);
 
-        let xIdx = 1;
-        let yIdx = 2;
+        let xIdx = 6;
+        let yIdx = 4;
         let tileArray = [
-            -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 0.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx,
-            -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
+            -0.5, 0.0, 0.5, xIdx *0.125 , (yIdx + 1.0) * 0.0625,
+            +0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125,  (yIdx + 1.0) * 0.0625,
+            0.5, 1.0, 0.5,  (xIdx + 1.0) * 0.125,  yIdx  * 0.0625,
+            0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125,  yIdx  * 0.0625,
+            -0.5, 1.0, 0.5,  xIdx *0.125,  yIdx  * 0.0625,
+            -0.5, 0.0, 0.5, xIdx *0.125, (yIdx + 1.0) * 0.0625,
 
-            0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            0.5, 1.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx,
-            0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
+            0.5, 0.0, 0.5, xIdx *0.125, (yIdx + 1.0) * 0.0625,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125,(yIdx + 1.0) * 0.0625,
+            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125, yIdx  * 0.0625,
+            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125, yIdx  * 0.0625,
+            0.5, 1.0, 0.5,  xIdx *0.125,yIdx  * 0.0625,
+            0.5, 0.0, 0.5,  xIdx *0.125, (yIdx + 1.0) * 0.0625,
 
             0.5, 0.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
             -0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
@@ -228,7 +230,8 @@ export class GameEngine extends AbstractScene {
 
         this.length = 6 * 4;
         this.firstOff = 6 * 4;
-        xIdx = 0;
+  
+                xIdx = 1;
         yIdx = 1;
         tileArray = tileArray.concat([
             -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
@@ -239,6 +242,7 @@ export class GameEngine extends AbstractScene {
             -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
 
         ]);
+         xIdx = 0;
         yIdx = 7;
         tileArray = tileArray.concat([
 
@@ -586,7 +590,7 @@ export class GameEngine extends AbstractScene {
 
                 const dist = this.camera.position.sub(blockPos).length() ;
                 const boundingSphereRadius = 0.866; // for unit cube
-                if (proj+boundingSphereRadius < 0  || proj2+boundingSphereRadius < 0  ||dist > 11.0) {
+                if (proj+boundingSphereRadius < 0  || proj2+boundingSphereRadius < 0  ||dist > 10.0) {
                    continue;
                 }
 
