@@ -29,7 +29,7 @@ module.exports = {
                 use: 'ts-loader'
             },
             {
-                test: /\.(vs|fs|obj|jpg|frag|vert|png)$/,
+                test: /\.(vs|fs|obj|jpg|frag|vert|png|ogg)$/,
                 type: 'asset/resource'
             },
             {

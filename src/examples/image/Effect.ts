@@ -7,6 +7,7 @@ import { VertexArrayObject } from '../../VertextArrayObject';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { context as gl } from './../../core/RenderingContext';
 import { GreenShaderProgram } from './GreenShaderProgram';
+import { TextureWrapMode } from '../../core/texture/TextureWrapMode';
 
 export class BackgroundImage {
 
@@ -63,6 +64,8 @@ export class BackgroundImage {
             }),
             TextureUtils.load(file).then((texture: Texture) => {
                 texture.blocky();
+                texture.setTextureWrapS(TextureWrapMode.CLAMP_TO_EDGE);
+                texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE);
                 this.texture = texture;
             })
         ]);

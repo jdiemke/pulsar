@@ -16,7 +16,14 @@ import { GreenShaderProgram } from './GreenShaderProgram';
 import { Key, Keyboard } from './Keyboard';
 import { MouseButton } from './MouseButton';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
+import { SoundEngine } from './SoundEngine';
+import { TextureWrapMode } from '../../core/texture/TextureWrapMode';
 
+/**
+ * TODO:
+ * - MSAA Framebuffers
+ * - culling
+ */
 class Bullet {
     public pos: Vector4f;
     public direction: Vector4f;
@@ -46,7 +53,7 @@ class BulletSystem {
 }
 
 // tslint:disable-next-line: max-classes-per-file
-export class ReflectionMappingScene extends AbstractScene {
+export class GameEngine extends AbstractScene {
 
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
@@ -111,6 +118,8 @@ export class ReflectionMappingScene extends AbstractScene {
     private mouseDown: boolean = false;
 
     private enemyList: Array<Enemy> = new Array<Enemy>();
+
+    private drawnBlocks: number = 0;
     public preload(): Promise<any> {
         return Promise.all([
             GreenShaderProgram.create().then(
@@ -131,6 +140,8 @@ export class ReflectionMappingScene extends AbstractScene {
                 }),
             TextureUtils.load(require('./../../assets/textures/shaman.png')).then((texture: Texture) => {
                 texture.blocky();
+                texture.setTextureWrapS(TextureWrapMode.CLAMP_TO_EDGE);
+                texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE);
                 this.texture2 = texture;
             }),
             TextureUtils.load(require('./../../assets/textures/bullet.png')).then((texture: Texture) => {
@@ -143,11 +154,15 @@ export class ReflectionMappingScene extends AbstractScene {
                 ' !\'><@+\'()@+,-./0123456789:; = ? ABCDEFGHIJKLMNOPQRSTUVWXYZ'
             ).then(
                 (t: TextWriter) => this.textWriter = t
-            )
+            ),
+            SoundEngine.getInstance().loadSound('shot', require('./assets/plasma.ogg')),
+            SoundEngine.getInstance().loadSound('music', require('./assets/junglebeat.ogg')),
+            SoundEngine.getInstance().loadSound('hit', require('./assets/headcrab-hit.ogg'))
         ]);
     }
 
     public init(canvas: HTMLCanvasElement): void {
+        SoundEngine.getInstance().play('music', 0.5, true);
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 4.5)));
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5)));
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5), (): Vector4f => new Vector4f(
@@ -241,7 +256,7 @@ export class ReflectionMappingScene extends AbstractScene {
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('vertex'), 3, 5, 0);
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('texcoord'), 2, 5, 3);
 
-        gl.clearColor(0.28, 0.63, 0.21, 1.0);
+        gl.clearColor(0.18, 0.13, 0.11, 1.0);
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
 
@@ -308,9 +323,13 @@ export class ReflectionMappingScene extends AbstractScene {
 
         this.textWriter.begin();
 
-        this.textWriter.setCurrentColor([1, 0.0, 0.0, 1]);
-        this.textWriter.setCurrentScale(2);
+        this.textWriter.setCurrentColor([1, 0.8, 0.8, 1]);
+        this.textWriter.setCurrentScale(1);
         this.textWriter.addText(8, 8, 'FPS: ' + this.fps);
+        this.textWriter.addText(8, 8 + 8, 'BLOCKS: ' + this.drawnBlocks);
+        this.textWriter.addText(8, 8 + 16, 'CAM.X: ' + this.camera.position.x );
+        this.textWriter.addText(8, 8 + 24, 'CAM.Y: ' + this.camera.position.z.toString() );
+        console.log(this.camera.position.z.toString())
 
         this.textWriter.setCurrentColor([1, 1, 1, 1]);
         this.textWriter.setCurrentScale(4);
@@ -499,6 +518,7 @@ export class ReflectionMappingScene extends AbstractScene {
                         if (hit) {
                             bullet.pos = oldPos;
                             bullet.hitTime = Date.now();
+                            SoundEngine.getInstance().play('hit', 0.9);
                         }
                         return !hit;
                     });
@@ -523,6 +543,7 @@ export class ReflectionMappingScene extends AbstractScene {
                 ),
                 this.camera.getDirection()
             ));
+            SoundEngine.getInstance().play('shot', 0.9);
         }
         /*
         console.log('bullets: ', this.bulletSystem.bullets.length);
@@ -541,21 +562,40 @@ export class ReflectionMappingScene extends AbstractScene {
         this.colorShaderProgram.use();
         gl.cullFace(gl.BACK);
         gl.enable(gl.CULL_FACE);
+        this.drawnBlocks = 0;
+
 
         for (let i = 0; i < this.level.length; i++) {
             for (let j = 0; j < this.level[i].length; j++) {
 
                 this.colorShaderProgram.setColor(this.colorList[this.levelColor[i][j]]);
 
+                let cam2 = this.computeModelViewMatrix(i, j, cam);
+                this.colorShaderProgram.setModelViewMatrix(cam2);
+
+                const blockPos = new Vector4f(i+0.5, 0,j+0.5,0);
+
+                const normal = this.camera.getLeftFrustumNormal();
+                const blockDir = blockPos.sub(this.camera.position);
+                const proj = normal.dot(blockDir);
+
+                  const normal2 = this.camera.getRightFrustumNormal().mul(-1);
+                const blockDir2= blockPos.sub(this.camera.position);
+                const proj2 = normal2.dot(blockDir2);
+
+
+                const dist = this.camera.position.sub(blockPos).length() ;
+                const boundingSphereRadius = 0.866; // for unit cube
+                if (proj+boundingSphereRadius < 0  || proj2+boundingSphereRadius < 0  ||dist > 11.0) {
+                   continue;
+                }
+
                 if (this.level[i][j] === 1) {
-                    let cam2 = this.computeModelViewMatrix(i, j, cam);
-                    this.colorShaderProgram.setModelViewMatrix(cam2);
                     gl.drawArrays(gl.TRIANGLES, 0, this.length);
                 } else {
-                    let cam2 = this.computeModelViewMatrix(i, j, cam);
-                    this.colorShaderProgram.setModelViewMatrix(cam2);
                     gl.drawArrays(gl.TRIANGLES, this.firstOff, 6 * 2);
                 }
+                this.drawnBlocks++;
             }
         }
     }

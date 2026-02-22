@@ -95,6 +95,7 @@ export class TextWriter {
     public begin(): void {
         this.array = [];
         this.color = [];
+        this.numCharacters = 0
     }
 
     public end(): void {

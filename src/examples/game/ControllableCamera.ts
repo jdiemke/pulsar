@@ -31,6 +31,24 @@ export class ControllableCamera {
         return new Vector4f(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
     }
 
+     private getVfov(): number {
+        return 45 * Math.PI/180;
+     }
+    public getLeftFrustumNormal(): Vector4f {
+         const hfov =2 * Math.atan(Math.tan(this.getVfov() * 0.5) * 640/360);
+         const fovRad = hfov*0.5 ;
+         const frustumAngle= this.yaw+fovRad-Math.PI/2;
+         return new Vector4f(-Math.sin(frustumAngle), 0, -Math.cos(frustumAngle));
+    }
+
+    
+    public getRightFrustumNormal(): Vector4f {
+        const hfov =2 * Math.atan(Math.tan(this.getVfov()* 0.5) * 640/360);
+         const fovRad = hfov*0.5 ;
+         const frustumAngle= this.yaw-fovRad-Math.PI/2;
+         return new Vector4f(-Math.sin(frustumAngle), 0, -Math.cos(frustumAngle));
+    }
+
     public getOrthoDirection(): Vector4f {
         return new Vector4f(-Math.sin(this.yaw-Math.PI/2), 0, -Math.cos(this.yaw-Math.PI/2));
     }
