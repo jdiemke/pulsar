@@ -10,15 +10,15 @@ export class FullscreenUtils {
         }
     }
 
-    public static enterFullscreen(element: Element): void {
+    public static enterFullscreen(element: Element): Promise<void> {
         if (element.requestFullscreen) {
-            element.requestFullscreen();
+            return element.requestFullscreen();
         } else if (element.mozRequestFullScreen) {
-            element.mozRequestFullScreen();
+            return element.mozRequestFullScreen();
         } else if (element.msRequestFullscreen) {
-            element.msRequestFullscreen();
+            return element.msRequestFullscreen();
         } else if (element.webkitRequestFullScreen) {
-            element.webkitRequestFullScreen();
+            return element.webkitRequestFullScreen();
         }
     }
 

@@ -47,7 +47,6 @@ export class Window {
 
         canvas.addEventListener('click', (event: MouseEvent) => {
             event.preventDefault();
-            FullscreenUtils.enterFullscreen(canvas);
             PointerLockUtils.requestLock(canvas);
         });
 
@@ -56,6 +55,10 @@ export class Window {
         this.draw = this.draw.bind(this);
         this.canvas = canvas;
         this.logger.info('BUILD DATE:', BUILD_TIME);
+    }
+
+    public getCanvas(): HTMLCanvasElement {
+        return this.canvas;
     }
 
     public addScene(scene: AbstractScene): void {

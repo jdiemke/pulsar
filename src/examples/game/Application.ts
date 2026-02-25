@@ -1,3 +1,5 @@
+import { FullscreenUtils } from '../../core/fullscreen/FullscreenUtils';
+import { PointerLockUtils } from '../../core/fullscreen/PointerLockUtils';
 import * as PULSAR from '../../Window';
 import { GameEngine } from './GameEngine';
 
@@ -14,10 +16,15 @@ class Application {
         button.innerText = 'Start Game';
         button.classList.add('button');
         button.addEventListener('click', () => {
-            window.start();
+            button.disabled = true;
+            button.style.setProperty('filter', 'grayscale(1)');
+          
+             FullscreenUtils.enterFullscreen(window.getCanvas()).then(()=> {
+                PointerLockUtils.requestLock(window.getCanvas());
+                window.start();
+            });
         });
-
-        document.body.appendChild(button)
+        document.body.appendChild(button);
     }
 
 }

@@ -198,34 +198,39 @@ export class GameEngine extends AbstractScene {
 
         let xIdx = 6;
         let yIdx = 4;
+        let offset=0.1;
+        let width= 128;
+        let height=256;
+        let xoff= 1/128*0.1;
+        let yoff= 1/256*0.1;
         let tileArray = [
-            -0.5, 0.0, 0.5, xIdx *0.125 , (yIdx + 1.0) * 0.0625,
-            +0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125,  (yIdx + 1.0) * 0.0625,
-            0.5, 1.0, 0.5,  (xIdx + 1.0) * 0.125,  yIdx  * 0.0625,
-            0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125,  yIdx  * 0.0625,
-            -0.5, 1.0, 0.5,  xIdx *0.125,  yIdx  * 0.0625,
-            -0.5, 0.0, 0.5, xIdx *0.125, (yIdx + 1.0) * 0.0625,
+            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            +0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125-xoff,  (yIdx + 1.0) * 0.0625-yoff,
+            0.5, 1.0, 0.5,  (xIdx + 1.0) * 0.125-xoff,  yIdx  * 0.0625+yoff,
+            0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125-xoff,  yIdx  * 0.0625+yoff,
+            -0.5, 1.0, 0.5,  xIdx *0.125+xoff,  yIdx  * 0.0625+yoff,
+            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
 
-            0.5, 0.0, 0.5, xIdx *0.125, (yIdx + 1.0) * 0.0625,
-            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125,(yIdx + 1.0) * 0.0625,
-            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125, yIdx  * 0.0625,
-            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125, yIdx  * 0.0625,
-            0.5, 1.0, 0.5,  xIdx *0.125,yIdx  * 0.0625,
-            0.5, 0.0, 0.5,  xIdx *0.125, (yIdx + 1.0) * 0.0625,
+            0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-xoff,(yIdx + 1.0) * 0.0625-yoff,
+            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
+            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
+            0.5, 1.0, 0.5,  xIdx *0.125+xoff,yIdx  * 0.0625+yoff,
+            0.5, 0.0, 0.5,  xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
 
-            0.5, 0.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
-            -0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
-            -0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx,
-            0.5, 0.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
+            0.5, 0.0, -0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-xoff, (yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
+            -0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
+            0.5, 1.0, -0.5, xIdx *0.125+xoff, yIdx  * 0.0625+yoff,
+            0.5, 0.0, -0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
 
-            -0.5, 0.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
-            -0.5, 0.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 1.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx,
-            -0.5, 0.0, -0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
+            -0.5, 0.0, -0.5, xIdx *0.125+xoff,(yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125-xoff, (yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
+            -0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
+            -0.5, 1.0, -0.5, xIdx *0.125+xoff, yIdx  * 0.0625+yoff,
+            -0.5, 0.0, -0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
         ];
 
         this.length = 6 * 4;
@@ -234,24 +239,24 @@ export class GameEngine extends AbstractScene {
                 xIdx = 1;
         yIdx = 1;
         tileArray = tileArray.concat([
-            -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 0.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            0.5, 0.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 0.0, -.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx,
-            -0.5, 0.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
+            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125-+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-+xoff,yIdx  * 0.0625+yoff,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-+xoff, yIdx  * 0.0625+yoff,
+            -0.5, 0.0, -.5, xIdx *0.125+xoff, yIdx  * 0.0625+yoff,
+            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
 
         ]);
          xIdx = 0;
         yIdx = 7;
         tileArray = tileArray.concat([
 
-            0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx + 1.0 / 16,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 1.0, -.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8, 1.0 / 16 * yIdx,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx, 1.0 / 16 * yIdx + 1.0 / 16,
+            0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8-+xoff, 1.0 / 16 * yIdx + 1.0 / 16-yoff,
+            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx+xoff, 1.0 / 16 * yIdx + 1.0 / 16-yoff,
+            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8-+xoff, 1.0 / 16 * yIdx+yoff,
+            -0.5, 1.0, -.5, 1.0 / 8 * xIdx+xoff, 1.0 / 16 * yIdx+yoff,
+            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8-+xoff, 1.0 / 16 * yIdx+yoff,
+            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx+xoff, 1.0 / 16 * yIdx + 1.0 / 16-yoff,
 
         ]);
 
@@ -333,7 +338,6 @@ export class GameEngine extends AbstractScene {
         this.textWriter.addText(8, 8 + 8, 'BLOCKS: ' + this.drawnBlocks);
         this.textWriter.addText(8, 8 + 16, 'CAM.X: ' + this.camera.position.x );
         this.textWriter.addText(8, 8 + 24, 'CAM.Y: ' + this.camera.position.z.toString() );
-        console.log(this.camera.position.z.toString())
 
         this.textWriter.setCurrentColor([1, 1, 1, 1]);
         this.textWriter.setCurrentScale(4);

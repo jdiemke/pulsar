@@ -3,10 +3,10 @@
  */
 
 interface Element {
-    requestFullScreen?(): void;
-    mozRequestFullScreen?(): void;
-    webkitRequestFullScreen?(): void;
-    msRequestFullscreen?(): void;
+    requestFullScreen?(): Promise<void>;
+    mozRequestFullScreen?(): Promise<void>;
+    webkitRequestFullScreen?(): Promise<void>;
+    msRequestFullscreen?(): Promise<void>;
 
     mozRequestPointerLock?(): void;
     webkitRequestPointerLock?(): void;
