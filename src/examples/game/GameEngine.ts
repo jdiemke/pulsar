@@ -65,6 +65,8 @@ export class GameEngine extends AbstractScene {
     private vbo: VertexBufferObject;
     private vba: VertexArrayObject;
 
+   private spriteVbo: VertexBufferObject
+
     private bulletSystem: BulletSystem = new BulletSystem();
     private textWriter: TextWriter;
     private texture: Texture;
@@ -141,7 +143,7 @@ export class GameEngine extends AbstractScene {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.backgroundImage = backgroundImage;
                 }),
-            TextureUtils.load(require('./../../assets/textures/shaman.png')).then((texture: Texture) => {
+            TextureUtils.load(require('./../../assets/textures/shaman2.png')).then((texture: Texture) => {
                 texture.blocky();
                 texture.setTextureWrapS(TextureWrapMode.CLAMP_TO_EDGE);
                 texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE);
@@ -279,24 +281,37 @@ export class GameEngine extends AbstractScene {
         this.initSprites();
     }
 
-    public initSprites(): void {
-        const vertexData: Array<number> = [
-            -0.5, +1.0, +0.0, +0.0, +0.0,
-            +0.5, +1.0, +0.0, +1.0, +0.0,
-            +0.5, -0.0, +0.0, +1.0, +1.0,
-            -0.5, -0.0, +0.0, +0.0, +1.0
+    public setSprite(index, horNum: number, verNum: number): void {
+
+       
+        const width = 1 / horNum;
+        const height = 1/verNum;
+        const offset = Math.floor(index %10) * width;
+        const offseth = Math.floor(index / 10) * height;
+      const vertexData: Array<number> = [
+            -0.5, +1.0, +0.0, offset, offseth,
+            +0.5, +1.0, +0.0, width+offset, offseth,
+            +0.5, -0.0, +0.0, width+offset, height+offseth,
+            -0.5, -0.0, +0.0, +offset, height+offseth
         ];
+
+        this.spriteVbo.update(new Float32Array(vertexData));
+    }
+    public initSprites(): void {
+  
 
         const elementData: Array<number> = [
             3, 1, 0, 3, 2, 1
         ];
 
-        const vbo: VertexBufferObject = new VertexBufferObject(vertexData);
+        this.spriteVbo = new VertexBufferObject(null,20*4, gl.DYNAMIC_DRAW);
         const ibo: ElementBufferObject = new ElementBufferObject(elementData);
         const vba: VertexArrayObject = new VertexArrayObject();
 
-        vba.bindVertexBufferToAttribute(vbo, this.spriteShader.getAttributeLocation('vertex'), 3, 5, 0);
-        vba.bindVertexBufferToAttribute(vbo, this.spriteShader.getAttributeLocation('texcoord'), 2, 5, 3);
+       
+
+        vba.bindVertexBufferToAttribute(this.spriteVbo, this.spriteShader.getAttributeLocation('vertex'), 3, 5, 0);
+        vba.bindVertexBufferToAttribute(this.spriteVbo, this.spriteShader.getAttributeLocation('texcoord'), 2, 5, 3);
         vba.bindElementBuffer(ibo);
 
         this.spriteShader.use();
@@ -386,10 +401,10 @@ export class GameEngine extends AbstractScene {
         this.spriteShader.setScale(1.0);
 
         this.enemyList.forEach(x => x.update());
-
+        this.setSprite((Date.now()*0.007 % 37)|0,10,5);
         this.enemyList.forEach((enemy: Enemy) => {
-
             const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.position.x)][Math.floor(enemy.position.z)]];
+
             this.spriteShader.setColor(color);
             this.spriteShader.setPos(enemy.position);
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
@@ -399,6 +414,7 @@ export class GameEngine extends AbstractScene {
             this.bulletTexture.bind(TextureUnit.UNIT_0);
             this.spriteShader.setColor(new Vector4f(1, 1, 1));
 
+            this.setSprite(0,1,1);
             this.bulletSystem.bullets.forEach(bullet => {
 
                 if (!bullet.hitTime || bullet.hitTime + 200 > Date.now()) {
