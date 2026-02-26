@@ -18,6 +18,7 @@ import { MouseButton } from './MouseButton';
 import { TextureMappingShaderProgram } from './TextureMappingShaderProgram';
 import { SoundEngine } from './SoundEngine';
 import { TextureWrapMode } from '../../core/texture/TextureWrapMode';
+import { Sprite } from './Sprite';
 
 /**
  * TODO:
@@ -107,7 +108,7 @@ export class GameEngine extends AbstractScene {
         new Vector4f(0.75, 0.5, 0.5),
     ];
 
-    private backgroundImage: BackgroundImage;
+    private backgroundImage: Sprite;
     private firstOff: number;
 
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * -90);
@@ -135,8 +136,8 @@ export class GameEngine extends AbstractScene {
                 texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE)
                 this.texture = texture;
             }),
-            BackgroundImage.create(require('./../../assets/textures/plasma-gun.png'))
-                .then((backgroundImage: BackgroundImage) => {
+            Sprite.create(require('./../../assets/textures/plasma-gun.png'))
+                .then((backgroundImage: Sprite) => {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.backgroundImage = backgroundImage;
                 }),
@@ -430,9 +431,12 @@ export class GameEngine extends AbstractScene {
         this.backgroundImage.setPosition(
             640 - 64 * 4,
             369 - (64 - 15) * 4 + Math.sin(Date.now() * 0.003) * 3 * 4,
-            128 * 4,
+            64 * 4,
             64 * 4
         );
+
+        const shot = this.lastBullet + 160 > Date.now();
+        this.backgroundImage.setSprite(shot);
         this.backgroundImage.draw();
     }
 
