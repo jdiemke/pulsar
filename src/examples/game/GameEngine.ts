@@ -114,6 +114,7 @@ export class GameEngine extends AbstractScene {
 
     private WeaponSprite: Sprite;
     private HealthSprite: Sprite;
+    private CrossSprite: Sprite;
     private firstOff: number;
 
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * -90);
@@ -150,6 +151,11 @@ export class GameEngine extends AbstractScene {
                 .then((backgroundImage: Sprite) => {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.HealthSprite = backgroundImage;
+                }),
+                             Sprite.create(require('./assets/cross.png'))
+                .then((backgroundImage: Sprite) => {
+                    backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
+                    this.CrossSprite = backgroundImage;
                 }),
             TextureUtils.load(require('./../../assets/textures/shaman2.png')).then((texture: Texture) => {
                 texture.blocky();
@@ -383,7 +389,7 @@ export class GameEngine extends AbstractScene {
 
         this.textWriter.setCurrentColor([1, 1, 1, 1]);
         this.textWriter.setCurrentScale(4);
-        this.textWriter.addText(8, 320, this.health+'+');
+        this.textWriter.addText(8, 320, ('0' + this.health).slice(-2));
         this.textWriter.addText(8, 320-32,('0' + this.ammo).slice(-2));
 
         this.textWriter.end();
@@ -507,7 +513,7 @@ export class GameEngine extends AbstractScene {
     private drawWeapon(): void {
         const color: number = this.levelColor[Math.floor(this.camera.position.x)][Math.floor(this.camera.position.z)];
 
-        this.WeaponSprite.setColor(this.colorList[color]);
+        
         this.WeaponSprite.setPosition(
             640 - 64 * 4,
             369 - (64 - 15) * 4 + Math.sin(Date.now() * 0.003) * 3 * 4,
@@ -516,6 +522,7 @@ export class GameEngine extends AbstractScene {
         );
 
         const shot = this.lastBullet + 160 > Date.now();
+        this.WeaponSprite.setColor(shot ? new Vector4f(1,1,1) : this.colorList[color]);
         this.WeaponSprite.setSprite( shot ? 1 : 0,2,1);
         this.WeaponSprite.draw();
     }
@@ -525,7 +532,7 @@ export class GameEngine extends AbstractScene {
 
         this.HealthSprite.setColor(new Vector4f(1,1,1,1));
         this.HealthSprite.setPosition(
-        40+32,
+        40+32+4,
             360-64-12,
         32 ,
             32 
@@ -534,6 +541,19 @@ export class GameEngine extends AbstractScene {
 
         this.HealthSprite.setSprite(0,1,1);
         this.HealthSprite.draw();
+
+        ///
+             this.CrossSprite.setColor(new Vector4f(1,1,1,1));
+        this.CrossSprite.setPosition(
+        40+32+4,
+            360-64-12+32,
+        32 ,
+            32 
+        );
+
+
+        this.CrossSprite.setSprite(0,1,1);
+        this.CrossSprite.draw();
     }
 
     private InputAndCollision(): void {
