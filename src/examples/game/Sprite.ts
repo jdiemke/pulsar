@@ -73,18 +73,17 @@ export class Sprite {
         ]);
     }
 
-    public setSprite(shot: boolean): void {
+    public setSprite(index: number, width: number, height: number): void {
 
-        const index = shot ? 1 : 0;
-        const width = 1 / 2;
-        const offset = index * width;
+        const width2 = 1 / width;
+        const offset = index * width2;
         const array: Array<number> = [
             0, 0, 0+offset, 0,
-            1, 0, width+offset, 0,
+            1, 0, width2+offset, 0,
             0, 1, 0+offset, 1,
 
-            1, 0, width+offset, 0,
-            1, 1, width+offset, 1,
+            1, 0, width2+offset, 0,
+            1, 1, width2+offset, 1,
             0, 1, 0+offset, 1
         ];
 

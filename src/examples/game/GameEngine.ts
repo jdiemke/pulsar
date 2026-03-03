@@ -65,12 +65,14 @@ export class GameEngine extends AbstractScene {
     private vbo: VertexBufferObject;
     private vba: VertexArrayObject;
 
-   private spriteVbo: VertexBufferObject
+    private spriteVbo: VertexBufferObject
 
     private bulletSystem: BulletSystem = new BulletSystem();
     private textWriter: TextWriter;
     private texture: Texture;
     private bulletTexture: Texture;
+    private medpack: Texture;
+    private plasmaAmo: Texture;
     private moveAnim: number = 0.0;
     private moveAnimScale: number = 0.015;
     private texture2: Texture;
@@ -110,7 +112,8 @@ export class GameEngine extends AbstractScene {
         new Vector4f(0.75, 0.5, 0.5),
     ];
 
-    private backgroundImage: Sprite;
+    private WeaponSprite: Sprite;
+    private HealthSprite: Sprite;
     private firstOff: number;
 
     private camera: ControllableCamera = new ControllableCamera(new Vector4f(1.5, 0.0, 1.5), Math.PI * 2 / 360 * -90);
@@ -141,7 +144,12 @@ export class GameEngine extends AbstractScene {
             Sprite.create(require('./../../assets/textures/plasma-gun.png'))
                 .then((backgroundImage: Sprite) => {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
-                    this.backgroundImage = backgroundImage;
+                    this.WeaponSprite = backgroundImage;
+                }),
+                   Sprite.create(require('./assets/plasma-ammo.png'))
+                .then((backgroundImage: Sprite) => {
+                    backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
+                    this.HealthSprite = backgroundImage;
                 }),
             TextureUtils.load(require('./../../assets/textures/shaman2.png')).then((texture: Texture) => {
                 texture.blocky();
@@ -151,7 +159,20 @@ export class GameEngine extends AbstractScene {
             }),
             TextureUtils.load(require('./../../assets/textures/bullet.png')).then((texture: Texture) => {
                 texture.blocky();
+
                 this.bulletTexture = texture;
+            }),
+            TextureUtils.load(require('./assets/medpack-small.png')).then((texture: Texture) => {
+                texture.blocky();
+                texture.setTextureWrapS(TextureWrapMode.CLAMP_TO_EDGE);
+                texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE);
+                this.medpack = texture;
+            }),
+            TextureUtils.load(require('./assets/plasma-ammo.png')).then((texture: Texture) => {
+                texture.blocky();
+                texture.setTextureWrapS(TextureWrapMode.CLAMP_TO_EDGE);
+                texture.setTextureWrapT(TextureWrapMode.CLAMP_TO_EDGE);
+                this.plasmaAmo = texture;
             }),
             TextWriter.create(
                 require('./../text/font.png'),
@@ -162,6 +183,8 @@ export class GameEngine extends AbstractScene {
             ),
             SoundEngine.getInstance().loadSound('shot', require('./assets/plasma.ogg')),
             SoundEngine.getInstance().loadSound('music', require('./assets/junglebeat.ogg')),
+            SoundEngine.getInstance().loadSound('shell-pickup', require('./assets/shell-pickup.ogg')),
+            SoundEngine.getInstance().loadSound('health-pickup', require('./assets/health-pickup.ogg')),
             SoundEngine.getInstance().loadSound('hit', require('./assets/headcrab-hit.ogg'))
         ]);
     }
@@ -201,65 +224,65 @@ export class GameEngine extends AbstractScene {
 
         let xIdx = 6;
         let yIdx = 4;
-        let offset=0.1;
-        let width= 128;
-        let height=256;
-        let xoff= 1/128*0.1;
-        let yoff= 1/256*0.1;
+        let offset = 0.1;
+        let width = 128;
+        let height = 256;
+        let xoff = 1 / 128 * 0.1;
+        let yoff = 1 / 256 * 0.1;
         let tileArray = [
-            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
-            +0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125-xoff,  (yIdx + 1.0) * 0.0625-yoff,
-            0.5, 1.0, 0.5,  (xIdx + 1.0) * 0.125-xoff,  yIdx  * 0.0625+yoff,
-            0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125-xoff,  yIdx  * 0.0625+yoff,
-            -0.5, 1.0, 0.5,  xIdx *0.125+xoff,  yIdx  * 0.0625+yoff,
-            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 0.0, 0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            +0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125 - xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            -0.5, 1.0, 0.5, xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            -0.5, 0.0, 0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
 
-            0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
-            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-xoff,(yIdx + 1.0) * 0.0625-yoff,
-            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
-            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
-            0.5, 1.0, 0.5,  xIdx *0.125+xoff,yIdx  * 0.0625+yoff,
-            0.5, 0.0, 0.5,  xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            0.5, 0.0, 0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125 - xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            0.5, 1.0, 0.5, xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            0.5, 0.0, 0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
 
-            0.5, 0.0, -0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
-            -0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-xoff, (yIdx + 1.0) * 0.0625-yoff,
-            -0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
-            -0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
-            0.5, 1.0, -0.5, xIdx *0.125+xoff, yIdx  * 0.0625+yoff,
-            0.5, 0.0, -0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            0.5, 0.0, -0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            -0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125 - xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            -0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            -0.5, 1.0, -0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            0.5, 1.0, -0.5, xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            0.5, 0.0, -0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
 
-            -0.5, 0.0, -0.5, xIdx *0.125+xoff,(yIdx + 1.0) * 0.0625-yoff,
-            -0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125-xoff, (yIdx + 1.0) * 0.0625-yoff,
-            -0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
-            -0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125-xoff, yIdx  * 0.0625+yoff,
-            -0.5, 1.0, -0.5, xIdx *0.125+xoff, yIdx  * 0.0625+yoff,
-            -0.5, 0.0, -0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 0.0, -0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            -0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125 - xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            -0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            -0.5, 1.0, 0.5, (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            -0.5, 1.0, -0.5, xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            -0.5, 0.0, -0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
         ];
 
         this.length = 6 * 4;
         this.firstOff = 6 * 4;
-  
-                xIdx = 1;
+
+        xIdx = 1;
         yIdx = 1;
         tileArray = tileArray.concat([
-            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
-            0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125-+xoff, (yIdx + 1.0) * 0.0625-yoff,
-            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-+xoff,yIdx  * 0.0625+yoff,
-            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125-+xoff, yIdx  * 0.0625+yoff,
-            -0.5, 0.0, -.5, xIdx *0.125+xoff, yIdx  * 0.0625+yoff,
-            -0.5, 0.0, 0.5, xIdx *0.125+xoff, (yIdx + 1.0) * 0.0625-yoff,
+            -0.5, 0.0, 0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            0.5, 0.0, 0.5, (xIdx + 1.0) * 0.125 - +xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125 - +xoff, yIdx * 0.0625 + yoff,
+            0.5, 0.0, -0.5, (xIdx + 1.0) * 0.125 - +xoff, yIdx * 0.0625 + yoff,
+            -0.5, 0.0, -.5, xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            -0.5, 0.0, 0.5, xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
 
         ]);
-         xIdx = 0;
+        xIdx = 0;
         yIdx = 7;
         tileArray = tileArray.concat([
 
-            0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8-+xoff, 1.0 / 16 * yIdx + 1.0 / 16-yoff,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx+xoff, 1.0 / 16 * yIdx + 1.0 / 16-yoff,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8-+xoff, 1.0 / 16 * yIdx+yoff,
-            -0.5, 1.0, -.5, 1.0 / 8 * xIdx+xoff, 1.0 / 16 * yIdx+yoff,
-            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8-+xoff, 1.0 / 16 * yIdx+yoff,
-            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx+xoff, 1.0 / 16 * yIdx + 1.0 / 16-yoff,
+            0.5, 1.0, 0.5, 1.0 / 8 * xIdx + 1.0 / 8 - +xoff, 1.0 / 16 * yIdx + 1.0 / 16 - yoff,
+            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx + xoff, 1.0 / 16 * yIdx + 1.0 / 16 - yoff,
+            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8 - +xoff, 1.0 / 16 * yIdx + yoff,
+            -0.5, 1.0, -.5, 1.0 / 8 * xIdx + xoff, 1.0 / 16 * yIdx + yoff,
+            0.5, 1.0, -0.5, 1.0 / 8 * xIdx + 1.0 / 8 - +xoff, 1.0 / 16 * yIdx + yoff,
+            -0.5, 1.0, 0.5, 1.0 / 8 * xIdx + xoff, 1.0 / 16 * yIdx + 1.0 / 16 - yoff,
 
         ]);
 
@@ -283,32 +306,32 @@ export class GameEngine extends AbstractScene {
 
     public setSprite(index, horNum: number, verNum: number): void {
 
-       
+
         const width = 1 / horNum;
-        const height = 1/verNum;
-        const offset = Math.floor(index %10) * width;
+        const height = 1 / verNum;
+        const offset = Math.floor(index % 10) * width;
         const offseth = Math.floor(index / 10) * height;
-      const vertexData: Array<number> = [
+        const vertexData: Array<number> = [
             -0.5, +1.0, +0.0, offset, offseth,
-            +0.5, +1.0, +0.0, width+offset, offseth,
-            +0.5, -0.0, +0.0, width+offset, height+offseth,
-            -0.5, -0.0, +0.0, +offset, height+offseth
+            +0.5, +1.0, +0.0, width + offset, offseth,
+            +0.5, -0.0, +0.0, width + offset, height + offseth,
+            -0.5, -0.0, +0.0, +offset, height + offseth
         ];
 
         this.spriteVbo.update(new Float32Array(vertexData));
     }
     public initSprites(): void {
-  
+
 
         const elementData: Array<number> = [
             3, 1, 0, 3, 2, 1
         ];
 
-        this.spriteVbo = new VertexBufferObject(null,20*4, gl.DYNAMIC_DRAW);
+        this.spriteVbo = new VertexBufferObject(null, 20 * 4, gl.DYNAMIC_DRAW);
         const ibo: ElementBufferObject = new ElementBufferObject(elementData);
         const vba: VertexArrayObject = new VertexArrayObject();
 
-       
+
 
         vba.bindVertexBufferToAttribute(this.spriteVbo, this.spriteShader.getAttributeLocation('vertex'), 3, 5, 0);
         vba.bindVertexBufferToAttribute(this.spriteVbo, this.spriteShader.getAttributeLocation('texcoord'), 2, 5, 3);
@@ -335,6 +358,7 @@ export class GameEngine extends AbstractScene {
         this.drawLevel();
         this.drawEnemies();
         this.drawWeapon();
+        this.drawHealth();
 
         this.drawHeadUpDisplay();
     }
@@ -343,6 +367,8 @@ export class GameEngine extends AbstractScene {
     private lastTime: number = null;
     private fps: number = 0;
 
+    private health = 5;
+    private ammo = 0;
     private drawHeadUpDisplay(): void {
         this.computeFPS();
 
@@ -352,12 +378,13 @@ export class GameEngine extends AbstractScene {
         this.textWriter.setCurrentScale(1);
         this.textWriter.addText(8, 8, 'FPS: ' + this.fps);
         this.textWriter.addText(8, 8 + 8, 'BLOCKS: ' + this.drawnBlocks);
-        this.textWriter.addText(8, 8 + 16, 'CAM.X: ' + this.camera.position.x );
-        this.textWriter.addText(8, 8 + 24, 'CAM.Y: ' + this.camera.position.z.toString() );
+        this.textWriter.addText(8, 8 + 16, 'CAM.X: ' + this.camera.position.x);
+        this.textWriter.addText(8, 8 + 24, 'CAM.Y: ' + this.camera.position.z.toString());
 
         this.textWriter.setCurrentColor([1, 1, 1, 1]);
         this.textWriter.setCurrentScale(4);
-        this.textWriter.addText(8, 320, '100+');
+        this.textWriter.addText(8, 320, this.health+'+');
+        this.textWriter.addText(8, 320-32,('0' + this.ammo).slice(-2));
 
         this.textWriter.end();
 
@@ -378,7 +405,17 @@ export class GameEngine extends AbstractScene {
 
         this.frameCounter++;
     }
+    private plasmaAmoList = [
+        { position: new Vector4f(2.5, -0.5, 1.5) },
+        { position: new Vector4f(3.5, -0.5, 1.5) },
+        { position: new Vector4f(4.5, -0.5, 1.5) }
+    ];
 
+            private  medpackList = [
+            { position: new Vector4f(1.5, -0.5, 1.5) },
+            { position: new Vector4f(7.5, -0.5, 1.5) },
+            { position: new Vector4f(1.5, -0.5, 6.5) }
+        ];
     /**
      * https://www.khronos.org/opengl/wiki/Transparency_Sorting
      */
@@ -401,8 +438,35 @@ export class GameEngine extends AbstractScene {
         this.spriteShader.setScale(1.0);
 
         this.enemyList.forEach(x => x.update());
-        this.setSprite((Date.now()*0.007 % 37)|0,10,5);
+        this.setSprite((Date.now() * 0.007 % 37) | 0, 10, 5);
+
         this.enemyList.forEach((enemy: Enemy) => {
+            const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.position.x)][Math.floor(enemy.position.z)]];
+
+            this.spriteShader.setColor(color);
+            this.spriteShader.setPos(enemy.position);
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+        });
+
+        // medpack
+
+        this.setSprite(0, 1, 1);
+        this.medpack.bind(TextureUnit.UNIT_0);
+        this.spriteShader.setScale(0.25);
+        this.medpackList.forEach((enemy) => {
+            const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.position.x)][Math.floor(enemy.position.z)]];
+
+            this.spriteShader.setColor(color);
+            this.spriteShader.setPos(enemy.position);
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, 0);
+        });
+
+        // plasma amo
+
+        this.setSprite(0, 1, 1);
+        this.plasmaAmo.bind(TextureUnit.UNIT_0);
+        this.spriteShader.setScale(0.25);
+        this.plasmaAmoList.forEach((enemy) => {
             const color: Vector4f = this.colorList[this.levelColor[Math.floor(enemy.position.x)][Math.floor(enemy.position.z)]];
 
             this.spriteShader.setColor(color);
@@ -414,7 +478,7 @@ export class GameEngine extends AbstractScene {
             this.bulletTexture.bind(TextureUnit.UNIT_0);
             this.spriteShader.setColor(new Vector4f(1, 1, 1));
 
-            this.setSprite(0,1,1);
+            this.setSprite(0, 1, 1);
             this.bulletSystem.bullets.forEach(bullet => {
 
                 if (!bullet.hitTime || bullet.hitTime + 200 > Date.now()) {
@@ -443,8 +507,8 @@ export class GameEngine extends AbstractScene {
     private drawWeapon(): void {
         const color: number = this.levelColor[Math.floor(this.camera.position.x)][Math.floor(this.camera.position.z)];
 
-        this.backgroundImage.setColor(this.colorList[color]);
-        this.backgroundImage.setPosition(
+        this.WeaponSprite.setColor(this.colorList[color]);
+        this.WeaponSprite.setPosition(
             640 - 64 * 4,
             369 - (64 - 15) * 4 + Math.sin(Date.now() * 0.003) * 3 * 4,
             64 * 4,
@@ -452,8 +516,24 @@ export class GameEngine extends AbstractScene {
         );
 
         const shot = this.lastBullet + 160 > Date.now();
-        this.backgroundImage.setSprite(shot);
-        this.backgroundImage.draw();
+        this.WeaponSprite.setSprite( shot ? 1 : 0,2,1);
+        this.WeaponSprite.draw();
+    }
+
+    private drawHealth(): void {
+   
+
+        this.HealthSprite.setColor(new Vector4f(1,1,1,1));
+        this.HealthSprite.setPosition(
+        40+32,
+            360-64-12,
+        32 ,
+            32 
+        );
+
+
+        this.HealthSprite.setSprite(0,1,1);
+        this.HealthSprite.draw();
     }
 
     private InputAndCollision(): void {
@@ -544,11 +624,12 @@ export class GameEngine extends AbstractScene {
                     this.enemyList = this.enemyList.filter(enemy => {
                         const hit = enemy.position.sub(bullet.pos).length() < 0.5;
                         if (hit) {
+                            enemy.energy -=1;
                             bullet.pos = oldPos;
                             bullet.hitTime = Date.now();
                             SoundEngine.getInstance().play('hit', 0.9);
                         }
-                        return !hit;
+                        return enemy.energy > 0;
                     });
 
                     if (!bullet.hitTime && this.hit(bullet.pos)) {
@@ -559,7 +640,7 @@ export class GameEngine extends AbstractScene {
             });
         }
 
-        if ((this.keyboard.isDown(Key.L) || this.mouseDown) && this.lastBullet + 200 < Date.now()) {
+        if ((this.keyboard.isDown(Key.L) || this.mouseDown) && this.lastBullet + 200 < Date.now() && this.ammo > 0) {
             this.lastBullet = Date.now();
             this.bulletSystem.addBullet(new Bullet(
                 new Vector4f(
@@ -571,8 +652,34 @@ export class GameEngine extends AbstractScene {
                 ),
                 this.camera.getDirection()
             ));
+            this.ammo--;
             SoundEngine.getInstance().play('shot', 0.9);
         }
+
+        this.plasmaAmoList = this.plasmaAmoList.filter(ammo => {
+            const hit = ammo.position.sub(this.camera.position.sub(new Vector4f(0, 0.5, 0))).length() < 0.5;
+            console.log('camera', this.camera.position);
+            console.log('ammo', ammo.position);
+            if (hit) {
+                SoundEngine.getInstance().play('shell-pickup', 0.9);
+
+                this.ammo += 5;
+                return false;
+            }
+            return true;
+        });
+
+                this.medpackList = this.medpackList.filter(ammo => {
+            const hit = ammo.position.sub(this.camera.position.sub(new Vector4f(0, 0.5, 0))).length() < 0.5;
+            console.log('camera', this.camera.position);
+            console.log('ammo', ammo.position);
+            if (hit) {
+                SoundEngine.getInstance().play('health-pickup', 0.9);
+                this.health += 5;
+                return false;
+            }
+            return true;
+        });
         /*
         console.log('bullets: ', this.bulletSystem.bullets.length);
         console.log('inactive bullets: ',
@@ -601,21 +708,21 @@ export class GameEngine extends AbstractScene {
                 let cam2 = this.computeModelViewMatrix(i, j, cam);
                 this.colorShaderProgram.setModelViewMatrix(cam2);
 
-                const blockPos = new Vector4f(i+0.5, 0,j+0.5,0);
+                const blockPos = new Vector4f(i + 0.5, 0, j + 0.5, 0);
 
                 const normal = this.camera.getLeftFrustumNormal();
                 const blockDir = blockPos.sub(this.camera.position);
                 const proj = normal.dot(blockDir);
 
-                  const normal2 = this.camera.getRightFrustumNormal().mul(-1);
-                const blockDir2= blockPos.sub(this.camera.position);
+                const normal2 = this.camera.getRightFrustumNormal().mul(-1);
+                const blockDir2 = blockPos.sub(this.camera.position);
                 const proj2 = normal2.dot(blockDir2);
 
 
-                const dist = this.camera.position.sub(blockPos).length() ;
+                const dist = this.camera.position.sub(blockPos).length();
                 const boundingSphereRadius = 0.866; // for unit cube
-                if (proj+boundingSphereRadius < 0  || proj2+boundingSphereRadius < 0  ||dist > 10.0) {
-                   continue;
+                if (proj + boundingSphereRadius < 0 || proj2 + boundingSphereRadius < 0 || dist > 10.0) {
+                    continue;
                 }
 
                 if (this.level[i][j] === 1) {

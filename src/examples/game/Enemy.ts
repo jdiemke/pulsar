@@ -3,6 +3,7 @@ import { Vector4f } from "../particles/Vector4f";
 export class Enemy {
 
     public position: Vector4f;
+    public energy = 5;
     public upd: () => Vector4f;
 
     constructor(pos: Vector4f, upd?: () => Vector4f) {
