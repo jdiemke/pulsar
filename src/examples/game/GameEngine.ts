@@ -7,7 +7,6 @@ import { TextureUtils } from '../../core/utils/TextureUtils';
 import { ElementBufferObject } from '../../ElementBufferObject';
 import { VertexBufferObject } from '../../VertexBufferObject';
 import { VertexArrayObject } from '../../VertextArrayObject';
-import { BackgroundImage } from '../image/Effect';
 import { TextWriter } from '../text/TextWriter';
 import { Vector4f } from '../torus-knot/Vector4f';
 import { ControllableCamera } from './ControllableCamera';
@@ -24,6 +23,8 @@ import { Sprite } from './Sprite';
  * TODO:
  * - MSAA Framebuffers
  * - culling
+ * - doors
+ * - portal culling, quad trees
  */
 class Bullet {
     public pos: Vector4f;
@@ -52,14 +53,74 @@ class BulletSystem {
     }
 
 }
+class Door {
+    public open: boolean = false;
+    public height: number = 0;
+    public time?: number = Date.now();
+    public position: Vector4f;
 
+    public openDoor(cam: ControllableCamera) {
+        const duration = 600;
+        const elapsed = Date.now() - this.time;
+
+        // animation finished?
+        if (elapsed < duration) {
+            return;
+        }
+
+        // 1. Distance Check
+        const dist = cam.position.sub(this.position).length();
+
+        if (dist > 2.0) {
+            return;
+        }
+
+
+        // 2. Facing Check
+        const directionToDoor = this.position.sub(cam.position).normalize();
+        const angle = directionToDoor.dot(cam.getDirection());
+        if (angle < 0.6) {
+            return;
+        }
+
+
+        if (!this.open) {
+            this.open = true;
+            this.time = Date.now();
+            SoundEngine.getInstance().play('door-open', 0.7);
+        } else {
+            if (!this.isBlocked(cam)) {
+                this.open = false;
+                this.time = Date.now();
+                SoundEngine.getInstance().play('door-close', 0.7);
+            }
+        }
+    }
+
+    isBlocked(cam: ControllableCamera) {
+        const boundingCircleDoor = 0.866;
+        const boundingCirclePlayer = 0.866 * 0.25;
+        return cam.position.sub(this.position).length() < boundingCircleDoor + boundingCirclePlayer;
+    }
+    getHeight() {
+        const duration = 600;
+        const elapsed = Date.now() - this.time;
+
+        const normalize = Math.min(1.0, Math.max(0, elapsed / duration));
+        return this.open ? this.easeOutQuad(normalize) : this.easeOutQuad(1 - normalize);
+    }
+
+    private easeOutQuad(x: number): number {
+        return 1 - (1 - x) * (1 - x);
+    }
+}
 // tslint:disable-next-line: max-classes-per-file
 export class GameEngine extends AbstractScene {
 
     private projectionMatrix: mat4 = mat4.create();
     private modelViewMatrix: mat4 = mat4.create();
 
-    private lastBullet: number = Date.now();
+    private lastTriggerPullTime: number = Date.now();
     private colorShaderProgram: TextureMappingShaderProgram;
     private spriteShader: GreenShaderProgram;
     private vbo: VertexBufferObject;
@@ -79,10 +140,10 @@ export class GameEngine extends AbstractScene {
     private length: number;
     private vao: VertexArrayObject;
     private level: Array<Array<number>> = [
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1],
+        [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1],
         [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
         [1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -94,13 +155,15 @@ export class GameEngine extends AbstractScene {
         [1, 1, 1, 1, 1, 6, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 4, 3, 5, 5],
         [1, 2, 2, 2, 2, 6, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 4, 3, 5],
         [1, 2, 2, 2, 2, 6, 2, 4, 4, 0, 0, 0, 4, 0, 0, 0, 0, 0, 4, 4, 3],
-        [3, 3, 3, 3, 1, 6, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
+        [3, 3, 3, 3, 1, 6, 3, 3, 3, 5, 0, 5, 3, 4, 0, 1, 1, 1, 0, 0, 4],
         [3, 3, 3, 3, 1, 3, 3, 3, 5, 5, 5, 5, 5, 3, 4, 1, 1, 1, 0, 0, 1],
         [3, 3, 3, 3, 1, 3, 3, 3, 3, 5, 5, 5, 3, 4, 0, 1, 1, 4, 0, 0, 4],
         [1, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 4, 0, 0, 1, 1, 3, 4, 4, 3],
         [1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 1, 0, 0, 1, 1, 5, 3, 3, 5],
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 5, 5, 5, 5]
     ];
+
+    private doors: Array<Array<Door>>;
 
     private colorList: Array<Vector4f> = [
         new Vector4f(1, 1, 1),
@@ -147,12 +210,12 @@ export class GameEngine extends AbstractScene {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.WeaponSprite = backgroundImage;
                 }),
-                   Sprite.create(require('./assets/plasma-ammo.png'))
+            Sprite.create(require('./assets/plasma-ammo.png'))
                 .then((backgroundImage: Sprite) => {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.HealthSprite = backgroundImage;
                 }),
-                             Sprite.create(require('./assets/cross.png'))
+            Sprite.create(require('./assets/cross.png'))
                 .then((backgroundImage: Sprite) => {
                     backgroundImage.setPosition(640 - 64 * 4, 369 - 64 * 4, 128 * 4, 64 * 4);
                     this.CrossSprite = backgroundImage;
@@ -191,11 +254,20 @@ export class GameEngine extends AbstractScene {
             SoundEngine.getInstance().loadSound('music', require('./assets/junglebeat.ogg')),
             SoundEngine.getInstance().loadSound('shell-pickup', require('./assets/shell-pickup.ogg')),
             SoundEngine.getInstance().loadSound('health-pickup', require('./assets/health-pickup.ogg')),
+            SoundEngine.getInstance().loadSound('empty-click', require('./assets/empty-click.ogg')),
+            SoundEngine.getInstance().loadSound('door-close', require('./assets/door-close.ogg')),
+            SoundEngine.getInstance().loadSound('door-open', require('./assets/door-open.ogg')),
             SoundEngine.getInstance().loadSound('hit', require('./assets/headcrab-hit.ogg'))
         ]);
     }
 
     public init(canvas: HTMLCanvasElement): void {
+        this.doors = Array.from({ length: this.level.length }, () => new Array(this.level[0].length).fill(undefined));
+        const door = new Door();
+        door.open = false;
+        door.position = new Vector4f(3.5, 0, 10.5);
+        this.doors[3][10] = door;
+        console.log(this.doors)
         SoundEngine.getInstance().play('music', 0.5, true);
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 4.5)));
         this.enemyList.push(new Enemy(new Vector4f(1.5, -0.5, 5.5)));
@@ -292,6 +364,26 @@ export class GameEngine extends AbstractScene {
 
         ]);
 
+        // door test
+        xIdx = 3;
+        yIdx = 7;
+        tileArray = tileArray.concat([
+            -0.5, 0.0, 0., xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            +0.5, 0.0, 0., (xIdx + 1.0) * 0.125 - xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            0.5, 1.0, 0., (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            0.5, 1.0, 0., (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            -0.5, 1.0, 0., xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            -0.5, 0.0, 0., xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+
+
+            0.5, 0.0, -0., xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            -0.5, 0.0, -0., (xIdx + 1.0) * 0.125 - xoff, (yIdx + 1.0) * 0.0625 - yoff,
+            -0.5, 1.0, -0., (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            -0.5, 1.0, -0., (xIdx + 1.0) * 0.125 - xoff, yIdx * 0.0625 + yoff,
+            0.5, 1.0, -0., xIdx * 0.125 + xoff, yIdx * 0.0625 + yoff,
+            0.5, 0.0, -0., xIdx * 0.125 + xoff, (yIdx + 1.0) * 0.0625 - yoff,
+        ]);
+
         this.vbo = new VertexBufferObject(tileArray);
         const vao: VertexArrayObject = new VertexArrayObject();
         vao.bindVertexBufferToAttribute(this.vbo, this.colorShaderProgram.getAttributeLocation('vertex'), 3, 5, 0);
@@ -311,8 +403,6 @@ export class GameEngine extends AbstractScene {
     }
 
     public setSprite(index, horNum: number, verNum: number): void {
-
-
         const width = 1 / horNum;
         const height = 1 / verNum;
         const offset = Math.floor(index % 10) * width;
@@ -326,6 +416,7 @@ export class GameEngine extends AbstractScene {
 
         this.spriteVbo.update(new Float32Array(vertexData));
     }
+
     public initSprites(): void {
 
 
@@ -350,8 +441,17 @@ export class GameEngine extends AbstractScene {
     }
 
     public hit(pos: Vector4f): boolean {
-        let val = this.level[Math.floor(pos.x)][Math.floor(pos.z)];
+        const xIndex = Math.floor(pos.x);
+        const zIndex = Math.floor(pos.z);
+
+        if (xIndex < 0 || xIndex > this.level.length - 1 || zIndex < 0 || zIndex > this.level[0].length - 1) {
+            return true;
+        }
+
+        let val = this.level[xIndex][zIndex];
         if (val === 1 || val === undefined) {
+            return true;
+        } else if (this.doors[xIndex][zIndex] && !this.doors[xIndex][zIndex].open) {
             return true;
         }
         return false;
@@ -390,7 +490,7 @@ export class GameEngine extends AbstractScene {
         this.textWriter.setCurrentColor([1, 1, 1, 1]);
         this.textWriter.setCurrentScale(4);
         this.textWriter.addText(8, 320, ('0' + this.health).slice(-2));
-        this.textWriter.addText(8, 320-32,('0' + this.ammo).slice(-2));
+        this.textWriter.addText(8, 320 - 32, ('0' + this.ammo).slice(-2));
 
         this.textWriter.end();
 
@@ -417,11 +517,11 @@ export class GameEngine extends AbstractScene {
         { position: new Vector4f(4.5, -0.5, 1.5) }
     ];
 
-            private  medpackList = [
-            { position: new Vector4f(1.5, -0.5, 1.5) },
-            { position: new Vector4f(7.5, -0.5, 1.5) },
-            { position: new Vector4f(1.5, -0.5, 6.5) }
-        ];
+    private medpackList = [
+        { position: new Vector4f(1.5, -0.5, 1.5) },
+        { position: new Vector4f(7.5, -0.5, 1.5) },
+        { position: new Vector4f(1.5, -0.5, 6.5) }
+    ];
     /**
      * https://www.khronos.org/opengl/wiki/Transparency_Sorting
      */
@@ -513,7 +613,7 @@ export class GameEngine extends AbstractScene {
     private drawWeapon(): void {
         const color: number = this.levelColor[Math.floor(this.camera.position.x)][Math.floor(this.camera.position.z)];
 
-        
+
         this.WeaponSprite.setPosition(
             640 - 64 * 4,
             369 - (64 - 15) * 4 + Math.sin(Date.now() * 0.003) * 3 * 4,
@@ -521,41 +621,44 @@ export class GameEngine extends AbstractScene {
             64 * 4
         );
 
-        const shot = this.lastBullet + 160 > Date.now();
-        this.WeaponSprite.setColor(shot ? new Vector4f(1,1,1) : this.colorList[color]);
-        this.WeaponSprite.setSprite( shot ? 1 : 0,2,1);
+        const shot = this.lastTriggerPullTime + 160 > Date.now() && this.shot;
+        this.WeaponSprite.setColor(shot ? new Vector4f(1, 1, 1) : this.colorList[color]);
+        this.WeaponSprite.setSprite(shot ? 1 : 0, 2, 1);
         this.WeaponSprite.draw();
     }
 
     private drawHealth(): void {
-   
 
-        this.HealthSprite.setColor(new Vector4f(1,1,1,1));
+
+        this.HealthSprite.setColor(new Vector4f(1, 1, 1, 1));
         this.HealthSprite.setPosition(
-        40+32+4,
-            360-64-12,
-        32 ,
-            32 
+            40 + 32 + 4,
+            360 - 64 - 12,
+            32,
+            32
         );
 
 
-        this.HealthSprite.setSprite(0,1,1);
+        this.HealthSprite.setSprite(0, 1, 1);
         this.HealthSprite.draw();
 
         ///
-             this.CrossSprite.setColor(new Vector4f(1,1,1,1));
+        this.CrossSprite.setColor(new Vector4f(1, 1, 1, 1));
         this.CrossSprite.setPosition(
-        40+32+4,
-            360-64-12+32,
-        32 ,
-            32 
+            40 + 32 + 4,
+            360 - 64 - 12 + 32,
+            32,
+            32
         );
 
 
-        this.CrossSprite.setSprite(0,1,1);
+        this.CrossSprite.setSprite(0, 1, 1);
         this.CrossSprite.draw();
     }
 
+
+    private cPressed: boolean = false;
+    private shot: boolean = false;
     private InputAndCollision(): void {
         const oldPos: Vector4f = new Vector4f(this.camera.position.x, this.camera.position.y, this.camera.position.z);
 
@@ -593,6 +696,15 @@ export class GameEngine extends AbstractScene {
 
         if (moving) {
             this.moveAnim += 0.2;
+        }
+
+        if (this.keyboard.isDown(Key.SPACE) && !this.cPressed) {
+            this.cPressed = true;
+            this.openDoor();
+        }
+
+        if (!this.keyboard.isDown(Key.SPACE)) {
+            this.cPressed = false;
         }
 
         let newPos = new Vector4f(oldPos.x, oldPos.y, oldPos.z);
@@ -644,7 +756,7 @@ export class GameEngine extends AbstractScene {
                     this.enemyList = this.enemyList.filter(enemy => {
                         const hit = enemy.position.sub(bullet.pos).length() < 0.5;
                         if (hit) {
-                            enemy.energy -=1;
+                            enemy.energy -= 1;
                             bullet.pos = oldPos;
                             bullet.hitTime = Date.now();
                             SoundEngine.getInstance().play('hit', 0.9);
@@ -660,26 +772,32 @@ export class GameEngine extends AbstractScene {
             });
         }
 
-        if ((this.keyboard.isDown(Key.L) || this.mouseDown) && this.lastBullet + 200 < Date.now() && this.ammo > 0) {
-            this.lastBullet = Date.now();
-            this.bulletSystem.addBullet(new Bullet(
-                new Vector4f(
-                    this.camera.position.x,
-                    this.camera.position.y - 0.12,
-                    this.camera.position.z
-                ).add(this.camera.getOrthoDirection().mul(0.07)).add(
-                    this.camera.getDirection().mul(0.25)
-                ),
-                this.camera.getDirection()
-            ));
-            this.ammo--;
-            SoundEngine.getInstance().play('shot', 0.9);
+        if ((this.keyboard.isDown(Key.L) || this.mouseDown) && this.lastTriggerPullTime + 200 < Date.now()) {
+
+            this.lastTriggerPullTime = Date.now();
+            if (this.ammo > 0) {
+                this.shot = true;
+                this.bulletSystem.addBullet(new Bullet(
+                    new Vector4f(
+                        this.camera.position.x,
+                        this.camera.position.y - 0.12,
+                        this.camera.position.z
+                    ).add(this.camera.getOrthoDirection().mul(0.07)).add(
+                        this.camera.getDirection().mul(0.25)
+                    ),
+                    this.camera.getDirection()
+                ));
+                this.ammo--;
+                SoundEngine.getInstance().play('shot', 0.9);
+            } else {
+                this.shot = false;
+                SoundEngine.getInstance().play('empty-click', 0.9);
+            }
         }
 
         this.plasmaAmoList = this.plasmaAmoList.filter(ammo => {
             const hit = ammo.position.sub(this.camera.position.sub(new Vector4f(0, 0.5, 0))).length() < 0.5;
-            console.log('camera', this.camera.position);
-            console.log('ammo', ammo.position);
+
             if (hit) {
                 SoundEngine.getInstance().play('shell-pickup', 0.9);
 
@@ -689,10 +807,9 @@ export class GameEngine extends AbstractScene {
             return true;
         });
 
-                this.medpackList = this.medpackList.filter(ammo => {
+        this.medpackList = this.medpackList.filter(ammo => {
             const hit = ammo.position.sub(this.camera.position.sub(new Vector4f(0, 0.5, 0))).length() < 0.5;
-            console.log('camera', this.camera.position);
-            console.log('ammo', ammo.position);
+
             if (hit) {
                 SoundEngine.getInstance().play('health-pickup', 0.9);
                 this.health += 5;
@@ -708,6 +825,15 @@ export class GameEngine extends AbstractScene {
                 return (bullet.hitTime + 200) < Date.now();
             }).length);
             */
+    }
+    private openDoor(): void {
+        const playerPos: Vector4f = this.camera.position;
+        this.doors.forEach(doors =>
+            doors.filter(door => door).forEach(door => {
+                console.log('door:', door.open)
+                door.openDoor(this.camera)
+            })
+        )
     }
 
     private drawLevel(): void {
@@ -750,6 +876,13 @@ export class GameEngine extends AbstractScene {
                 } else {
                     gl.drawArrays(gl.TRIANGLES, this.firstOff, 6 * 2);
                 }
+
+
+                if (this.doors[i][j]) {
+                    cam2 = this.computeModelViewMatrixDoor(i, j, cam, this.doors[i][j])
+                    this.colorShaderProgram.setModelViewMatrix(cam2);
+                    gl.drawArrays(gl.TRIANGLES, 6 * 6, 6 * 2);
+                }
                 this.drawnBlocks++;
             }
         }
@@ -763,6 +896,12 @@ export class GameEngine extends AbstractScene {
         mat4.translate(this.modelViewMatrix, cam, [-0.0, -0.5 + Math.sin(this.moveAnim) * this.moveAnimScale, -0.0]);
         let mat = mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [x + 0.5, 0, y + 0.5]);
         return mat;
+    }
+
+    private computeModelViewMatrixDoor(x: number, y: number, cam: mat4, door: Door): mat4 {
+        mat4.translate(this.modelViewMatrix, cam, [-0.0, -0.5 + Math.sin(this.moveAnim) * this.moveAnimScale, -0.0]);
+        let mat = mat4.translate(this.modelViewMatrix, this.modelViewMatrix, [x + 0.5, 0 + door.getHeight(), y + 0.5]);
+        return mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, 90 * (Math.PI / 180), [0, 1, 0]);
     }
 
 }

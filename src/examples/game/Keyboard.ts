@@ -37,5 +37,7 @@ export enum Key {
     D = 68,
     L= 76,
     W = Keyboard.getCode('W'),
-    S = Keyboard.getCode('S')
+    C = Keyboard.getCode('C'),
+    S = Keyboard.getCode('S'),
+    SPACE = Keyboard.getCode(' ')
 }
