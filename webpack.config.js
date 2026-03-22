@@ -13,6 +13,7 @@ module.exports = {
         'game': './src/examples/game/Application.ts',
         'render-to-texture': './src/examples/render-to-texture/Application.ts',
         'text': './src/examples/text/Application.ts',
+        'portal': './src/examples/portal/main.ts',
     },
     output: {
         filename: '[name].bundle.js',
@@ -81,6 +82,11 @@ module.exports = {
             template: './src/index.html',
             chunks: ['render-to-texture'],
             filename: 'render-to-texture.html'
+        }),
+            new HtmlWebpackPlugin({
+            template: './src/index.html',
+            chunks: ['portal'],
+            filename: 'portal.html'
         }),
         new HtmlWebpackPlugin({
             template: './src/index.html',
