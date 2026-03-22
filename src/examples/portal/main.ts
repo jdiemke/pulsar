@@ -20,6 +20,14 @@ class Vector2 {
         return new Vector2(this.x - vector.x, this.y - vector.y);
     }
 
+    normalize() {
+        const length = Math.sqrt(this.x * this.x + this.y * this.y);
+        if( length > 0)
+            return this.mult(1/length)
+        else
+            return this;
+    }
+
     dot(vector: Vector2) {
         return (this.x * vector.x + this.y * vector.y);
     }
@@ -125,6 +133,11 @@ class Player {
 
     moveForward() {
         this.position = this.position.add(this.direction);
+    }
+
+    
+    moveBackward() {
+        this.position = this.position.sub(this.direction);
     }
 
     turnLeft() {
@@ -236,7 +249,7 @@ function loop(now: number) {
         player.turnLeft();
     }
     if (keys['s']) {
-
+        player.moveBackward();
     }
     if (keys['d']) {
         player.turnRight();
@@ -244,6 +257,11 @@ function loop(now: number) {
 
     ctx.fillStyle = '#333333';
     ctx.fillRect(0, 0, 1000, 700);
+        ctx.strokeStyle = 'grey';
+       
+            ctx.setLineDash([5, 6]);
+    player.draw();
+ ctx.setLineDash([]);
     portals.forEach(portal => {
         portal.draw();
 
@@ -252,10 +270,38 @@ function loop(now: number) {
         if (clipped.length == 2) {
             const p = new Portal(clipped[0], clipped[1]);
             p.draw('#00ff00');
+
+            // comput clipped frustum
+            const left = p.a.sub(player.position).normalize();
+            const right = p.b.sub(player.position).normalize();
+
+     
+        const leftOrthi = left.orthogonal();
+        const rightOrtho = right.orthogonal().mult(-1);
+        ctx.beginPath();
+        ctx.moveTo(player.position.x, player.position.y);
+        const end2 = player.position.add(left.mult(400));
+        ctx.lineTo(end2.x, end2.y);
+        ctx.moveTo(player.position.x, player.position.y);
+        const end3 = player.position.add(right.mult(400));
+        ctx.lineTo(end3.x, end3.y);
+        ctx.stroke();
+
+                // normals
+        const nStart = player.position.add(left.mult(50));
+        ctx.beginPath();
+        ctx.moveTo(nStart.x, nStart.y);
+        const nEnd = nStart.add(leftOrthi.mult(10));
+        ctx.lineTo(nEnd.x, nEnd.y);
+        const nStart2 = player.position.add(right.mult(50));
+
+        ctx.moveTo(nStart2.x, nStart2.y);
+        const nEnd2 = nStart2.add(rightOrtho.mult(10));
+        ctx.lineTo(nEnd2.x, nEnd2.y);
+        ctx.stroke();
         }
     });
-    ctx.strokeStyle = 'grey';
-    player.draw();
+
 
 
     requestAnimationFrame(loop);
